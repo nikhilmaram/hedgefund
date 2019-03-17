@@ -3,3 +3,5 @@
 *.xlsx
 *py_cache
 *DS_store
+*.jpg
+*.png
