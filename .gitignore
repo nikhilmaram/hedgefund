@@ -1,9 +1,13 @@
 *.csv
 *.txt
 *.xlsx
-*py_cache
+*__pycache__
 *DS_store
 *.jpg
 *.png
+*.pyc
+*.xml
+*/.cache/*
+*.iml
 
 !.gitkeep
