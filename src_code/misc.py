@@ -5,6 +5,7 @@ from datetime import  datetime,timedelta,date
 from typing import List
 from typing import Tuple
 import os
+import pickle
 
 def create_book_file(file):
     """Creates a book file from reading Trader Book Account xlsx"""
@@ -37,6 +38,35 @@ def read_book_file(file_path:str) -> List:
         stock_list.append(line.strip("\n").strip())
 
     return stock_list
+
+def write_dict_in_file(inp_dict : dict,file_path:str):
+    """Writes the dictionaries into files.
+
+    Args:
+        inp_dict : Input dictionary.
+        file_path : file to where the dictionary needs to be written.
+
+    Returns:
+        None.
+    """
+    with open(file_path,"wb") as handle:
+        pickle.dump(inp_dict,handle)
+
+def read_file_into_dict(file_path:str) -> dict:
+    """Reads file into dictionary.
+
+    Args:
+        file_path : Path to file to read data from..
+
+    Returns:
+        output_dict : output dictionary.
+    """
+    output_dict = {}
+    with open(file_path,"rb") as handle:
+        output_dict = pickle.load(handle)
+
+    return output_dict
+
 
 def calculate_week(curr_date):
     """
@@ -153,3 +183,40 @@ def common_keys(dict_1 : dict , dict_2 : dict) -> Tuple[dict,dict]:
 
     return out_dict_1, out_dict_2
 
+def change_key_string_key_date(inp_dict):
+    """Converts the keys of dictionary from string to dates.
+
+    Args:
+        inp_dict : Input dictionary whose keys are strings.
+
+    Returns:
+        output_dict : output dictionary whose keys are dates.
+    """
+
+    output_dict = {}
+
+    for key,value in inp_dict.items():
+        output_dict[datetime.strptime(key,"%Y-%m-%d")] = value
+
+    return output_dict
+
+def get_list_from_dicts_sorted_dates(dict_1 : dict,dict_2 : dict)-> Tuple[List,List]:
+    """Returns two lists whose values are sorted in dates.
+
+
+    Args:
+        dict_1,dict_2: Dictionaries whose keys are dates.
+
+    Returns:
+        Lists whose elements are values in dict with sorted key values.
+    """
+    output_list_1 = []
+    output_list_2 = []
+
+    dates_list = sorted(dict_1.keys())
+
+    for curr_date in dates_list:
+        output_list_1.append(dict_1[curr_date])
+        output_list_2.append(dict_2[curr_date])
+
+    return output_list_1,output_list_2
