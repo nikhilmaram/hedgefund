@@ -1,6 +1,7 @@
 *.csv
 *.txt
 *.xlsx
+*.pkl
 *__pycache__
 *DS_store
 *.jpg
