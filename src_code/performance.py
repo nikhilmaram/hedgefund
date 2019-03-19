@@ -14,6 +14,58 @@ import numpy as np
 import config as cfg
 import misc
 
+def calulate_performance_from_mtd_values(df : pd.DataFrame) -> Tuple[List,List]:
+    """Calculates the performance value given mtd values by subtracting the last day of previous month.
+
+    Args:
+        df : Input Dataframe.
+
+    Returns:
+        dates_list : list of dates.
+        performance_list : list of performances.
+    """
+
+    df["performance"] = df["PnL_MTD_adjusted"]
+    for month, df_month_group in df.groupby("year_month"):
+        ## get the indexes of monthly dataframe
+        index_list = df_month_group.index.values
+        prev_performance = 0
+        for idx in index_list:
+            df.loc[idx,"performance"] = df.loc[idx,"PnL_MTD_adjusted"]-prev_performance
+            prev_performance = df.loc[idx,"PnL_MTD_adjusted"]
+
+
+    dates_list = df["date"].tolist()
+    performance_list = df["performance"].tolist()
+
+    # To calculate the performance by dividing every element with its mean.
+    # calculate the mean of the book and divide each element by its mean.
+    if (len(performance_list) > 0):
+        performance_list = [float(x) for x in performance_list]
+        performance_mean = sum(performance_list)/len(performance_list)
+        performance_list = [x/(performance_mean+1) for x in performance_list]
+
+    # # To calculate the performance cumulatively
+    # df["cumulative"] = 0
+    # ## need to adjust for month ending
+    # cumulative_sum = 0
+    # for month, df_month_group in df.groupby("year_month"):
+    #     # ## For cumulative sum
+    #     df["cumulative"][df["year_month"] == month] = cumulative_sum + df["PnL_MTD_adjusted"][df["year_month"] == month]
+    #     cumulative_sum = df[df["year_month"] == month].iloc[-1]["cumulative"]
+
+    # ## if cumulative sum is needed for performance
+    # performance_list = df["cumulative"].tolist()
+    # ## if difference is needed for performance.
+    # performance_list = [(float(performance_list[i + 1]) - float(performance_list[i])) / (float(performance_list[i]) + 1) for i in
+    #                range(len(performance_list) - 1)]
+    # performance_list.insert(0, 0)
+
+
+    return dates_list,performance_list
+
+
+
 def performance_given_book(file_path : str, book:str,start_week : int = 0, end_week : int = 300,only_week:bool=False) -> Tuple[List,List]:
     """Calculates the performance of given book over given weeks.
 
@@ -25,13 +77,15 @@ def performance_given_book(file_path : str, book:str,start_week : int = 0, end_w
         only_week  : data is calculated weekly instead of each date.
 
     Returns:
-        dates: dates on which performance is present.
-        performance : performance on given dates.
+        dates_list: dates on which performance is present.
+        performance_list : performance on given dates.
 
     Performance is calculated by dividing PnL with mean of PnL for the given period.
     We need to have a fraction because it is easy to add up performances for different books.
     """
     df = pd.read_csv(file_path)
+    # df = df[["date", "delta", "PnL_MTD_adjusted", "AccountingFile_PnL_MTD", "year_month"]]
+    df = df[["date","book","PnL_MTD_adjusted","year_month"]]
     df = df[df["book"]== book]
 
     df = df.dropna()
@@ -50,17 +104,8 @@ def performance_given_book(file_path : str, book:str,start_week : int = 0, end_w
     if only_week:
         df = df.drop_duplicates("week", keep='last')
 
-    # df = df[["date", "delta", "PnL_MTD_adjusted", "AccountingFile_PnL_MTD", "year_month"]]
-    dates = df["date"].tolist()
-    performance = df["PnL_MTD_adjusted"].tolist()
-    ## calculate the mean of the book and divide each element by its mean.
-
-    if (len(performance) > 0):
-        performance = [float(x) for x in performance]
-        performance_mean = sum(performance)/len(performance)
-        performance = [x/performance_mean for x in performance]
-
-    return dates, performance
+    dates_list, performance_list = calulate_performance_from_mtd_values(df)
+    return dates_list, performance_list
 
 def performance_given_book_list(file_path:str, book_list:List,start_week : int = 0, end_week : int = 300,only_week:bool=False) -> Tuple[dict,dict]:
     """Calculates the performance given book list.
@@ -82,7 +127,7 @@ def performance_given_book_list(file_path:str, book_list:List,start_week : int =
 
     for book in book_list:
         dates,performance = performance_given_book(file_path,book,start_week,end_week,only_week=only_week)
-        # print("Book: {0}, Length of Dates: {1}".format(book,len(dates)))
+        print("Book: {0}, Length of Dates: {1}".format(book,len(dates)))
         dates_dict[book] = dates
         performance_dict[book] = performance
 
@@ -115,9 +160,10 @@ def combine_performance_given_book_list(dates_dict : dict, performance_dict :dic
         for book_date,book_performance in zip(book_dates_list,book_performance_list):
             if only_week:
                 ## This condition is required because different books may have different dates in the week if weekly data is considered.
-                ## i.e one book may have wednesday and other might have Thrursday. Need to normalize that to Thursday for every week.
+                ## i.e one book may have wednesday and other might have Thrursday. Need to normalize that to Monday for every week.
                 book_date_week = misc.calculate_week(book_date.to_datetime().date())
                 book_date = misc.calculate_date(week_num=book_date_week)
+                book_date = datetime(book_date.year,book_date.month,book_date.day)
 
             intervalised_performance[book_date] =intervalised_performance.get(book_date,[])
             intervalised_performance[book_date].append(book_performance)

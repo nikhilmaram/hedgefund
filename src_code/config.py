@@ -30,6 +30,7 @@ SENTIMENT_PERSONAL          = GENERATED_DATA_DIR + "/sentiment_personal/"
 SENTIMENT_BUSINESS          = GENERATED_DATA_DIR + "/sentiment_business/"
 KCORE_PERSONAL              = GENERATED_DATA_DIR + "/kcore/personal/"
 KCORE_BUSINESS              = GENERATED_DATA_DIR + "/kcore/business/"
+PKL_FILES                   = GENERATED_DATA_DIR + "/pkl_files/"
 
 
 #############################################################
