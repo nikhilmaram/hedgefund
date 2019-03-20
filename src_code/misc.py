@@ -98,6 +98,17 @@ def calculate_date(start_date = date(2006, 7, 31),week_num = 1):
     return end_date
 
 
+def calculate_datetime(start_date = date(2006, 7, 31),week_num = 1):
+    """
+    Args:
+        start_date : start date
+        week_num : ween number
+    Returns:
+        end_date : datetime from start date for with a gap of week_num weeks.
+    """
+    end_date = start_date + timedelta(days=week_num*7)
+    end_datetime = datetime(end_date.year,end_date.month,end_date.day)
+    return end_datetime
 
 def writing_list_into_file(inp_list:List,file_path:str):
     """ To write an element into a new line in a file.
@@ -111,10 +122,27 @@ def writing_list_into_file(inp_list:List,file_path:str):
     """
     with open(file_path, "w") as myfile:
         for ele in inp_list:
-            myfile.write("%d" % ele)
+            myfile.write("%s" % ele)
             myfile.write(",")
         myfile.write("\n")
     myfile.close()
+
+
+def read_file_into_list(file_path:str):
+    """Reads the file into list.
+
+    Args:
+        file_path : path to the file.
+
+    Returns:
+        None.
+    Items in file are comma separated and written in a single line
+    """
+
+    output_list = open(file_path).readline().strip("\n").split(",")[:-1] ## extra comma is added in writing file.
+    return output_list
+
+
 
 def df_week_df_day(inp_df : pd.DataFrame) -> dict:
     """Splits weekly dataframe to daily dataframe.
