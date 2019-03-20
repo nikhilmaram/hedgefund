@@ -108,7 +108,8 @@ def compute_kcore_values_filelist(file_list:List[str], src_dir_path:str, dst_dir
             file_path = os.path.join(src_dir_path, file_name)
             message_matrix, _ ,_ = network.create_matrix(file_path,in_network=True)
             G = network.create_graph(message_matrix)
-            kcore_number_list, kcore_num_of_nodes_list, kcore_num_components_list, kcore_largest_cc_num_nodes_list = network.compute_kcore_values_list(G,25)
+            kcore_number_list, kcore_num_of_nodes_list, kcore_num_components_list, \
+            kcore_largest_cc_num_nodes_list, kcore_largest_cc_nodes_list= network.compute_kcore_values_list(G,25)
 
             output_path = dst_dir_path + "/kcore_number_week{0}.csv".format(week_num)
             misc.writing_list_into_file(kcore_number_list,output_path)
@@ -121,6 +122,9 @@ def compute_kcore_values_filelist(file_list:List[str], src_dir_path:str, dst_dir
 
             output_path = dst_dir_path + "/kcore_largest_cc_num_nodes_week{0}.csv".format(week_num)
             misc.writing_list_into_file(kcore_largest_cc_num_nodes_list, output_path)
+
+            output_path = dst_dir_path + "/kcore_largest_cc_nodes_week{0}.csv".format(week_num)
+            misc.writing_list_into_file(kcore_largest_cc_nodes_list, output_path)
 
 def compute_kcore_values_filelist_multiprocess(src_dir_path:str,dst_dir_path : str,num_process : int):
     """Runs the compute_kcore_values_filelist on multiple process.
