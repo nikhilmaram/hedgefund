@@ -92,12 +92,12 @@ class NetworkModuleTest(unittest.TestCase):
         self.assertEqual(nx.is_isomorphic(observed_graph, expected_graph), True)
 
     @parameterized.expand([
-        [1,8,2,5],
-        [2,5,1,5],
-        [3,4,1,4],
-        [4,0,0,0]
+        [1,8,2,5,"1-2-3-4-5"],
+        [2,5,1,5,"1-2-3-4-5"],
+        [3,4,1,4,"1-2-3-4"],
+        [4,0,0,0,""]
     ])
-    def test_compute_kcore_values(self,kcore_num,kcore_num_of_nodes,kcore_num_components,kcore_largest_cc_num_nodes):
+    def test_compute_kcore_values(self,kcore_num,kcore_num_of_nodes,kcore_num_components,kcore_largest_cc_num_nodes,kcore_largest_cc_nodes):
         input_G = nx.Graph()
 
         ## Create the input Graph
@@ -105,7 +105,9 @@ class NetworkModuleTest(unittest.TestCase):
         input_G.add_edge(3,5) ; input_G.add_edge(4,5) ; input_G.add_edge(1,4)
         input_G.add_edge(6,7) ; input_G.add_edge(6,8)
 
-        kcore_num_obs, kcore_num_of_nodes_obs, kcore_num_components_obs, kcore_largest_cc_num_nodes_obs = network.compute_kcore_values(input_G,kcore_num)
+        kcore_num_obs, kcore_num_of_nodes_obs, kcore_num_components_obs, \
+        kcore_largest_cc_num_nodes_obs,kcore_largest_cc_nodes_obs = network.compute_kcore_values(input_G,kcore_num)
+
         self.assertEqual(kcore_num_obs,kcore_num)
         self.assertEqual(kcore_num_of_nodes_obs,kcore_num_of_nodes)
         self.assertEqual(kcore_num_components_obs,kcore_num_components)
