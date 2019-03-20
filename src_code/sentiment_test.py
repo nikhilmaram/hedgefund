@@ -7,6 +7,7 @@ import mpl_toolkits
 import pandas as pd
 import unittest
 import os
+from datetime import datetime
 from parameterized import parameterized
 
 import sentiment
@@ -79,27 +80,34 @@ class SentimentModuleTest(unittest.TestCase):
     def test_compute_sentiments_from_filelist(self):
         return_dict = {}
         sent_sentiment_dict_obs, recv_sentiment_dict_obs, within_sentiment_dict_obs = sentiment.\
-            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter","sherrick_michael"],1,True)
+            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter","sherrick_michael"],1,True,end_week=400)
 
         # [[sent_sentiment_dict_obs, recv_sentiment_dict_obs, within_sentiment_dict_obs]] = return_dict.values()
 
         sent_sentiment_dict_exp = {} ; recv_sentiment_dict_exp = {} ; within_sentiment_dict_exp = {}
-        sent_sentiment_dict_exp["08-03-2006"] = sentiment.resultant_sentiment([-1,1])
-        recv_sentiment_dict_exp["08-03-2006"] = sentiment.resultant_sentiment([1])
-        within_sentiment_dict_exp["08-03-2006"] = sentiment.resultant_sentiment([1])
+        date = "08-03-2006"
+        # date = datetime.strptime(date, '%m-%d-%Y')
+        sent_sentiment_dict_exp[date] = sentiment.resultant_sentiment([-1,1])
+        recv_sentiment_dict_exp[date] = sentiment.resultant_sentiment([1])
+        within_sentiment_dict_exp[date] = sentiment.resultant_sentiment([1])
 
+        print(sent_sentiment_dict_obs)
         self.assertDictEqual(sent_sentiment_dict_exp,sent_sentiment_dict_obs)
         self.assertDictEqual(recv_sentiment_dict_exp,recv_sentiment_dict_obs)
         self.assertDictEqual(within_sentiment_dict_exp,within_sentiment_dict_obs)
 
         sent_sentiment_dict_obs, recv_sentiment_dict_obs, within_sentiment_dict_obs = sentiment. \
-            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter", "sherrick_michael"], 1, False)
+            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter", "sherrick_michael"], 1, False,end_week=400)
 
         sent_sentiment_dict_exp = {}; recv_sentiment_dict_exp = {}; within_sentiment_dict_exp = {}
-        sent_sentiment_dict_exp["08-03-2006"] = sentiment.resultant_sentiment([-1,1,1,-1,1])
-        recv_sentiment_dict_exp["08-03-2006"] = sentiment.resultant_sentiment([1,1])
-        within_sentiment_dict_exp["08-03-2006"] = sentiment.resultant_sentiment([1])
+        sent_sentiment_dict_exp[date] = sentiment.resultant_sentiment([-1,1,1,-1,1])
+        recv_sentiment_dict_exp[date] = sentiment.resultant_sentiment([1,1])
+        within_sentiment_dict_exp[date] = sentiment.resultant_sentiment([1])
 
         self.assertDictEqual(sent_sentiment_dict_exp, sent_sentiment_dict_obs)
         self.assertDictEqual(recv_sentiment_dict_exp, recv_sentiment_dict_obs)
         self.assertDictEqual(within_sentiment_dict_exp, within_sentiment_dict_obs)
+
+        sent_sentiment_dict_obs, recv_sentiment_dict_obs, within_sentiment_dict_obs = sentiment. \
+            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter", "sherrick_michael"], 1, True,
+                                                       end_week=400,only_week=True)

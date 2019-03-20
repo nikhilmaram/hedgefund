@@ -30,6 +30,7 @@ if __name__ == "__main__":
     # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_PERSONAL,cfg.KCORE_PERSONAL,8)
     # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_BUSINESS, cfg.KCORE_BUSINESS, 8)
 
+    processing_all_files.modify_im_dfs(business_sentiment_src_dir+"im_df_week264.csv",cfg.SENTIMENT_BUSINESS+"/im_df_week264.csv")
     # =========================================================================
     # ==================== Employee Related ===================================
     # =========================================================================
@@ -59,11 +60,11 @@ if __name__ == "__main__":
 
     # # generate sentiment from all files
 
-    employee_dict = employee.get_emplpoyees_from_file(cfg.EMPLOYEE_MASTER_FILE)
-    employee_dict = employee.create_employee_hierarchy(employee_dict)
-    subordinates_list = employee.subordinates_given_employee(employee_dict, "winham_christopher")
-    sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict = sentiment.\
-        compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL,subordinates_list,1,True,125,126)
+    # employee_dict = employee.get_emplpoyees_from_file(cfg.EMPLOYEE_MASTER_FILE)
+    # employee_dict = employee.create_employee_hierarchy(employee_dict)
+    # subordinates_list = employee.subordinates_given_employee(employee_dict, "winham_christopher")
+    # sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict = sentiment.\
+    #     compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL,subordinates_list,1,True,125,126)
     # #
     # print(sent_sentiment_dict)
 

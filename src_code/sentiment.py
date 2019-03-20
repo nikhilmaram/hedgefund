@@ -171,7 +171,7 @@ def compute_sentiments_from_filelist(file_list : List, src_dir_path:str, user_na
      """
     process_count = multiprocessing.current_process().name
 
-    print("In compute_sentiments_from_filelist function")
+    print("In compute_sentiments_from_filelist function", only_week)
     sent_sentiment_dict = {}
     recv_sentiment_dict = {}
     within_sentiment_dict = {}
@@ -186,17 +186,17 @@ def compute_sentiments_from_filelist(file_list : List, src_dir_path:str, user_na
             sent_sentiment, recv_sentiment, within_sentiment = sentiment_given_user_list(df, user_name_list,in_network)
             ## Calculate the monday of the week.
             week_num = int(file_name.split('.')[0].split('_')[-1][4:])
-            date = misc.calculate_date(week_num=week_num).strftime("%Y-%m-%d")
-            sent_sentiment_dict[date] = sent_sentiment
-            recv_sentiment_dict[date] = recv_sentiment
-            within_sentiment_dict[date] = within_sentiment
+            curr_date = misc.calculate_date(week_num=week_num).strftime("%Y-%m-%d")
+            sent_sentiment_dict[curr_date] = sent_sentiment
+            recv_sentiment_dict[curr_date] = recv_sentiment
+            within_sentiment_dict[curr_date] = within_sentiment
         else:
-            ## Group the data according to date.
-            for date, df_date in df.groupby("day"):
-                sent_sentiment, recv_sentiment, within_sentiment = sentiment_given_user_list(df_date,user_name_list,in_network)
-                sent_sentiment_dict[date] = sent_sentiment
-                recv_sentiment_dict[date] = recv_sentiment
-                within_sentiment_dict[date] = within_sentiment
+            ## Group the data according to curr_date.
+            for curr_date, df_curr_date in df.groupby("day"):
+                sent_sentiment, recv_sentiment, within_sentiment = sentiment_given_user_list(df_curr_date,user_name_list,in_network)
+                sent_sentiment_dict[curr_date] = sent_sentiment
+                recv_sentiment_dict[curr_date] = recv_sentiment
+                within_sentiment_dict[curr_date] = within_sentiment
 
     return_dict[process_count] = [sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict]
     # return sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict
@@ -225,9 +225,7 @@ def compute_sentiments_from_filelist_multiproc(src_dir_path : str, user_name_lis
     sent_sentiment_dict = {}
     recv_sentiment_dict = {}
     within_sentiment_dict = {}
-
     list_of_file_list = misc.splitting_all_files(src_dir_path, num_process,start_week,end_week)
-    print(list_of_file_list)
 
     process_list = []
 
