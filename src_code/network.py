@@ -113,7 +113,7 @@ def compute_kcore(G: nx.Graph, kcore_num :int) -> nx.Graph:
     kcore_G = nx.k_core(G,kcore_num)
     return kcore_G
 
-def compute_kcore_values(G:nx.Graph,kcore_num:int) -> Tuple[int,int,int,int]:
+def compute_kcore_values(G:nx.Graph,kcore_num:int) -> Tuple[int,int,int,int,str]:
     """Computes various values associated with k-core(k = kcore_num) of the given graph G.
 
         Args:
@@ -124,20 +124,23 @@ def compute_kcore_values(G:nx.Graph,kcore_num:int) -> Tuple[int,int,int,int]:
             kcore_num_of_nodes : contains number of nodes present in corresponding K-core.
             kcore_num_components : contains number of connected components in corresponding K-core.
             kcore_largest_cc_num_nodes : contains number of nodes present in the largest connected component of corresponding K-core.
-
+            kcore_largest_cc_nodes : nodes present in largest connected component of K-core (list written as str).
         """
     kcore_G = compute_kcore(G, kcore_num)
     kcore_num_of_nodes = len(kcore_G.nodes)
     if (kcore_num_of_nodes == 0):
-        return kcore_num,0,0,0
+        return kcore_num,0,0,0,"0"
     subgraphs = nx.connected_component_subgraphs(kcore_G)
     kcore_num_components = len(list(subgraphs))
     kcore_largest_cc = max(nx.connected_component_subgraphs(kcore_G), key=len)
     kcore_largest_cc_num_nodes = len(kcore_largest_cc.nodes)
+    kcore_largest_cc_nodes = kcore_largest_cc.nodes
+    ## create a string from the list.
+    kcore_largest_cc_nodes = [str(x) for x in kcore_largest_cc_nodes]
+    kcore_largest_cc_nodes = "-".join(kcore_largest_cc_nodes)
+    return kcore_num,kcore_num_of_nodes,kcore_num_components,kcore_largest_cc_num_nodes,kcore_largest_cc_nodes
 
-    return kcore_num,kcore_num_of_nodes,kcore_num_components,kcore_largest_cc_num_nodes
-
-def compute_kcore_values_list(G : nx.Graph, max_k_core:int) -> Tuple[List,List,List,List]:
+def compute_kcore_values_list(G : nx.Graph, max_k_core:int) -> Tuple[List,List,List,List,List]:
     """Computes various values associated with k-core of the given graph G.
 
     Args:
@@ -149,26 +152,27 @@ def compute_kcore_values_list(G : nx.Graph, max_k_core:int) -> Tuple[List,List,L
                                 (i.e 2nd element corresponds to number of nodes in K-core where K value is 2nd element in kcore_number_list_
         kcore_num_components_list : contains number of connected components in corresponding K-core.
         kcore_largest_cc_num_nodes_list : contains number of nodes present in the largest connected component of corresponding K-core.
-
+        kcore_largest_cc_nodes_list : contains nodes present in largest connected component of K-core.
     """
 
     kcore_number_list = [];  kcore_num_of_nodes_list = []
-    kcore_num_components_list = [] ; kcore_largest_cc_num_nodes_list = []
+    kcore_num_components_list = [] ; kcore_largest_cc_num_nodes_list = [] ; kcore_largest_cc_nodes_list = []
 
     for kcore_num in range(max_k_core):
 
-        kcore_num, kcore_num_of_nodes, kcore_num_components, kcore_largest_cc_num_nodes = compute_kcore_values(G,kcore_num)
+        kcore_num, kcore_num_of_nodes, kcore_num_components, kcore_largest_cc_num_nodes,kcore_largest_cc_nodes = compute_kcore_values(G,kcore_num)
         if (kcore_num_of_nodes == 0):
             break
         kcore_num_components_list.append(kcore_num_components)
         kcore_num_of_nodes_list.append(kcore_num_of_nodes)
         kcore_number_list.append(kcore_num)
         kcore_largest_cc_num_nodes_list.append(kcore_largest_cc_num_nodes)
+        kcore_largest_cc_nodes_list.append(kcore_largest_cc_nodes)
 
         print("Number of {0}-core Nodes: {1}, Connected Components : {2}, largest CC Size: {3}"
               .format(kcore_num,kcore_num_of_nodes,kcore_num_components,kcore_largest_cc_num_nodes))
 
-    return kcore_number_list, kcore_num_of_nodes_list, kcore_num_components_list, kcore_largest_cc_num_nodes_list
+    return kcore_number_list, kcore_num_of_nodes_list, kcore_num_components_list, kcore_largest_cc_num_nodes_list,kcore_largest_cc_nodes_list
 
 
 
