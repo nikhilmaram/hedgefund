@@ -26,11 +26,17 @@ if __name__ == "__main__":
     # processing_all_files.modify_im_dfs_filelist_multiprocess(business_sentiment_src_dir,cfg.SENTIMENT_BUSINESS,16)
     # processing_all_files.modify_im_dfs_filelist_multiprocess(personal_sentiment_src_dir, cfg.SENTIMENT_PERSONAL, 8)
 
-    # # Computing K-core values from the business and personal files.
+    # Computing K-core values from the business and personal files.
+
     # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_PERSONAL,cfg.KCORE_PERSONAL,8)
     # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_BUSINESS, cfg.KCORE_BUSINESS, 8)
+    # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_JOINT, cfg.KCORE_JOINT, 16)
 
-    processing_all_files.modify_im_dfs(business_sentiment_src_dir+"im_df_week264.csv",cfg.SENTIMENT_BUSINESS+"/im_df_week264.csv")
+    # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_PERSONAL,cfg.KCORE_PERSONAL_TOTAL,8,False)
+    # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_BUSINESS, cfg.KCORE_BUSINESS_TOTAL, 8,False)
+    # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_JOINT, cfg.KCORE_JOINT_TOTAL, 8,False)
+
+
     # =========================================================================
     # ==================== Employee Related ===================================
     # =========================================================================
