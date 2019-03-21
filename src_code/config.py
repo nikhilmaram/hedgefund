@@ -28,8 +28,16 @@ BOOK_FILE                   = USER_DATA_DIR + "/book.csv"
 
 SENTIMENT_PERSONAL          = GENERATED_DATA_DIR + "/sentiment_personal/"
 SENTIMENT_BUSINESS          = GENERATED_DATA_DIR + "/sentiment_business/"
+SENTIMENT_JOINT             = GENERATED_DATA_DIR + "/sentiment_joint/"
+
 KCORE_PERSONAL              = GENERATED_DATA_DIR + "/kcore/personal/"
 KCORE_BUSINESS              = GENERATED_DATA_DIR + "/kcore/business/"
+KCORE_JOINT                 = GENERATED_DATA_DIR + "/kcore/joint/"
+
+KCORE_PERSONAL_TOTAL        = GENERATED_DATA_DIR + "/kcore_total/personal/"
+KCORE_BUSINESS_TOTAL        = GENERATED_DATA_DIR + "/kcore_total/business/"
+KCORE_JOINT_TOTAL           = GENERATED_DATA_DIR + "/kcore_total/joint/"
+
 PKL_FILES                   = GENERATED_DATA_DIR + "/pkl_files/"
 
 
