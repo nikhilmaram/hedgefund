@@ -16,6 +16,9 @@ import config as cfg
 import performance
 import sentiment
 import misc
+import relationships
+
+
 
 def plot_list_of_lists_vs_dates(x :List,y_list : List[List],xlabel :str,ylabel: str,title:str,legend_info:List):
     """Plots y (list of lists) against x (list).
@@ -34,7 +37,7 @@ def plot_list_of_lists_vs_dates(x :List,y_list : List[List],xlabel :str,ylabel: 
         # plt.plot(x, y_list[i],'-o', label='%d-core' % (i+1))
         ax.plot_date(x, y_list[i], '-o', label=legend_info[i])
 
-    months = MonthLocator(range(1, 13), bymonthday=1, interval=1)
+    months = MonthLocator(range(1, 13), bymonthday=1, interval=2)
     monthsFmt = DateFormatter("%b '%y")
     # every monday
     mondays = WeekdayLocator(MONDAY)
@@ -49,6 +52,7 @@ def plot_list_of_lists_vs_dates(x :List,y_list : List[List],xlabel :str,ylabel: 
     plt.title(title)
     plt.legend()
     plt.show()
+    # plt.draw()
 
 
 def plot_list_vs_dates(x :List,y: List,xlabel :str,ylabel: str,title:str,legend_info:str):
@@ -234,16 +238,21 @@ if __name__ == "__main__":
     # ====================Plotting K-core Files================================
     # =========================================================================
 
-    # dates,y_list = network.compute_element_kcore_for_plots(cfg.KCORE_PERSONAL,75,150,"kcore_largest_cc_num_nodes",10)
-    # legend_info = [str(i)+"-core" for i in range(len(y_list))]
-    # plot_list_of_lists_vs_dates(dates,y_list,"Time","Number of Nodes in Largest Connected Component",
-    #                    "Number of Nodes in Largest Connected Component Vs Time : Personal",legend_info)
+    dates,y_list = network.compute_element_kcore_for_plots(cfg.KCORE_PERSONAL_TOTAL,123,200,"kcore_largest_cc_num_nodes",6)
+    legend_info = [str(i)+"-core" for i in range(len(y_list))]
+    plot_list_of_lists_vs_dates(dates,y_list,"Time","Number of Nodes in Largest Connected Component",
+                       "Number of Nodes in Largest Connected Component Vs Time : Personal",legend_info)
     #
-    # dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_BUSINESS,75, 150, "kcore_largest_cc_num_nodes",10)
-    #
-    # legend_info = [str(i)+"-core" for i in range(len(y_list))]
-    # plot_list_of_lists_vs_dates(dates, y_list, "Time", "Number of Nodes in Largest Connected Component",
-    #                                  "Number of Nodes in Largest Connected Component Vs Time : Business", legend_info)
+    dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_BUSINESS_TOTAL,123, 200, "kcore_largest_cc_num_nodes",6)
+    legend_info = [str(i)+"-core" for i in range(len(y_list))]
+    plot_list_of_lists_vs_dates(dates, y_list, "Time", "Number of Nodes in Largest Connected Component",
+                                     "Number of Nodes in Largest Connected Component Vs Time : Business", legend_info)
+
+    dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_JOINT_TOTAL, 123, 200, "kcore_largest_cc_num_nodes",
+                                                            6)
+    legend_info = [str(i) + "-core" for i in range(len(y_list))]
+    plot_list_of_lists_vs_dates(dates, y_list, "Time", "Number of Nodes in Largest Connected Component",
+                                "Number of Nodes in Largest Connected Component Vs Time : Joint", legend_info)
 
     # =========================================================================
     # ====================Plotting hierarchy===================================
@@ -254,11 +263,13 @@ if __name__ == "__main__":
     # plot_employee_hierarchy(employee_dict["sapanski_lawrence"],employee_dict,cfg.PLOTS_DIR+"/sapanski_lawrence.jpg")
 
     # =========================================================================
-    # ====================Plotting performance=================================
+    # ====================Plotting performance of the book/booklist.===========
     # =========================================================================
 
-    dates_list,performance_list = performance.performance_given_book(cfg.PERFORMANCE_FILE,"MENG",start_week=123,end_week=350,only_week=True)
-    plot_list_vs_dates(dates_list,performance_list,xlabel="Dates",ylabel="Performance",title="Performance of Book",legend_info="MENG")
+    # dates_list, performance_list = performance.performance_given_book(cfg.PERFORMANCE_FILE, "MENG", start_week=123,
+    #                                                                   end_week=350, only_week=True)
+    # plot_list_vs_dates(dates_list, performance_list, xlabel="Dates", ylabel="Performance", title="Performance of Book",
+    #                    legend_info="MENG")
 
     # book_list = misc.read_book_file(cfg.BOOK_FILE)
     # dates_dict, performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,book_list,0,300)
@@ -273,6 +284,25 @@ if __name__ == "__main__":
     # performance_date_dict = performance.combine_performance_given_book_list(dates_dict,performance_dict)
     # plot_list_vs_dates(list(performance_date_dict.keys()),list(performance_date_dict.values()),"Dates","Performance","Performance vs Dates","performance list")
 
+    # =========================================================================
+    # ====================Plotting kcore performance.==========================
+    # =========================================================================
+
+    # start_week = 123;   end_week = 200;  k_value = 6;  max_lag = 20
+    # dates_list = [misc.calculate_datetime(week_num=x) for x in range(start_week,end_week +1)]
+    # total_performance_list = []
+    # for k_value in range(1,7):
+    #     performance_week_dict,_,_ = relationships.compute_relationships_performance_kcore(cfg.KCORE_JOINT,start_week=start_week,
+    #                                                                                   end_week=end_week,k_value=k_value,max_lag=max_lag)
+    #     performance_list = []
+    #     for date_week in dates_list:
+    #         performance_week = performance_week_dict.get(date_week,0)
+    #         performance_list.append(performance_week)
+    #
+    #     total_performance_list.append(performance_list)
+    #
+    # legend_info = [str(i) + "-core" for i in range(1,7)]
+    # plot_list_of_lists_vs_dates(dates_list,total_performance_list,"Time","Kcore-performance","Kcore-performance Vs Time",legend_info)
 
     # =========================================================================
     # ====================Plotting sentiment =================================
