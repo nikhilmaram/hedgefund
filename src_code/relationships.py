@@ -196,7 +196,7 @@ def compute_causal_relationships_performance_kcore(kcore_performance_dict, kcore
     return causal_performance_kcore_dict
 
 
-def compute_relationships_performance_kcore(src_dir_path: str, start_week : int,end_week : int, k_value : int,max_lag : int = 5):
+def compute_relationships_performance_kcore(src_dir_path: str, start_week : int,end_week : int, k_value : int,max_lag : int = 5) -> Tuple[dict,dict,dict]:
     """Computes the relationships between performance and k-core.
 
     Args:
@@ -207,11 +207,17 @@ def compute_relationships_performance_kcore(src_dir_path: str, start_week : int,
          max_lag : Maximum lag that can be applied.
 
     Returns:
-        None.
+        kcore_performance_dict : contains kcore performance for given weeks.
+                                    key : date(monday of the week number) ; value : kcore performance of that week.
+        kcore_num_nodes_dict   : Number of nodes in the largest cc of in that week.
+                                    key : date(monday of the week number) ; value : number of nodes in largest cc of that week.
+        causal_performance_kcore_dict : causal data for that week.
     """
     ## key : date(monday of the week number) value : Number of kcore largest cc nodes in the week.
     kcore_num_nodes_dict = {}
     kcore_performance_dict ={}
+    employee_id_username_dict, _ = employee.employee_id_to_username_from_file(cfg.EMPLOYEE_MASTER_FILE)
+    performance_week_dict = misc.read_file_into_dict(cfg.PKL_FILES+"/performance_weekly.pkl")
 
     for week_num in range(start_week,end_week + 1):
         ## need employees present in each core and books related to them.
@@ -226,7 +232,7 @@ def compute_relationships_performance_kcore(src_dir_path: str, start_week : int,
 
         kcore_number_list = misc.read_file_into_list(kcore_number_file)
         kcore_number_list = [int(x) for x in kcore_number_list]
-        print(kcore_number_list)
+        # print(kcore_number_list)
 
         if k_value in kcore_number_list:
             idx = kcore_number_list.index(k_value)
@@ -238,24 +244,39 @@ def compute_relationships_performance_kcore(src_dir_path: str, start_week : int,
             ## Performance of the employees present in kcore.
             # ========================================================================================
             ## get the epmployee ids from kcore and get their corresponding user names.
+            employee_username_list_kcore = []
             employee_id_list_kcore = kcore_largest_cc_nodes_list[idx].split('-')
-            employee_id_username_dict, _ = employee.employee_id_to_username_from_file(cfg.EMPLOYEE_MASTER_FILE)
-            employee_username_list_kcore = [employee_id_username_dict[int(x)] for x in employee_id_list_kcore]
-            print(employee_username_list_kcore)
+            for employee_id in employee_id_list_kcore:
+                employee_id = int(employee_id)
+                if employee_id in employee_id_username_dict.keys():
+                    employee_username_list_kcore.append(employee_id_username_dict[employee_id])
 
-            ## get the book list corresponding to employees present in k-core.
+
+            # print(employee_username_list_kcore)
+
+            ## get the book list corresponding to employees present in k-core and use precomputed weekly performance.
             book_list_kcore = employee.books_given_employee_list(employee_username_list_kcore)
-            dates_dict, performance_book_list_kcore_dict = performance.performance_given_book_list(
-                                                                cfg.PERFORMANCE_FILE,book_list_kcore,week_num,week_num,only_week=True)
-            performance_date_dict = performance.combine_performance_given_book_list(dates_dict,performance_book_list_kcore_dict,
-                                                                                    only_week= True)
-            kcore_performance_dict.update(performance_date_dict)
 
-    print(kcore_performance_dict)
-    print(kcore_num_nodes_dict)
+            curr_week_performance_list = []
+            for book in book_list_kcore:
+                performance_week_dict_book = performance_week_dict.get(book,{})
+                curr_week_book_performance = performance_week_dict_book.get(week_num,0)
+                curr_week_performance_list.append(curr_week_book_performance)
+
+            if len(curr_week_performance_list) > 0:
+                curr_week_performance = sum(curr_week_performance_list)/len(curr_week_performance_list)
+            else:
+                curr_week_performance = 0
+
+            kcore_performance_dict[misc.calculate_datetime(week_num=week_num)] = curr_week_performance
+
+    # print(kcore_performance_dict)
+    # print(kcore_num_nodes_dict)
     causal_performance_kcore_dict = compute_causal_relationships_performance_kcore(kcore_performance_dict,kcore_num_nodes_dict,max_lag)
-    print(causal_performance_kcore_dict)
+    for lag,value in causal_performance_kcore_dict.items():
+        print(lag, value)
 
+    return kcore_performance_dict,kcore_num_nodes_dict,causal_performance_kcore_dict
 
 
 if __name__ == "__main__":
@@ -277,5 +298,12 @@ if __name__ == "__main__":
     # ========================================================================================
     # ===========Computing causality given book list(performance & kcore)=====================
     # =========================================================================================
+    start_week = 123; end_week = 200 ; k_value = 6 ; max_lag = 20
+    print("===============================BUSINESS==========================================")
 
-    compute_relationships_performance_kcore(cfg.KCORE_BUSINESS,start_week=123,end_week=265,k_value=2)
+    compute_relationships_performance_kcore(cfg.KCORE_BUSINESS_TOTAL,start_week=start_week,end_week=end_week,k_value=k_value,max_lag=max_lag)
+    print("===============================PERSONAL==========================================")
+
+    compute_relationships_performance_kcore(cfg.KCORE_PERSONAL_TOTAL, start_week=start_week, end_week=end_week, k_value=k_value, max_lag=max_lag)
+    print("===============================JOINT==========================================")
+    compute_relationships_performance_kcore(cfg.KCORE_JOINT_TOTAL,start_week=start_week, end_week= end_week, k_value= k_value, max_lag= max_lag)
