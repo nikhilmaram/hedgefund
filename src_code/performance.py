@@ -9,12 +9,14 @@ from datetime import datetime
 from typing import List
 from typing import Tuple
 import numpy as np
-
+import random
 
 import config as cfg
 import misc
 
-def calulate_performance_from_mtd_values(df : pd.DataFrame) -> Tuple[List,List]:
+performance_mean_dict_book = misc.read_file_into_dict(cfg.PKL_FILES+"/performance_mean.pkl")
+
+def calulate_performance_from_mtd_values(df : pd.DataFrame,book:str) -> Tuple[List,List]:
     """Calculates the performance value given mtd values by subtracting the last day of previous month.
 
     Args:
@@ -40,10 +42,9 @@ def calulate_performance_from_mtd_values(df : pd.DataFrame) -> Tuple[List,List]:
 
     # To calculate the performance by dividing every element with its mean.
     # calculate the mean of the book and divide each element by its mean.
-    if (len(performance_list) > 0):
-        performance_list = [float(x) for x in performance_list]
-        performance_mean = sum(performance_list)/len(performance_list)
-        performance_list = [x/(performance_mean+1) for x in performance_list]
+    if len(performance_list) > 0 :
+        book_mean = performance_mean_dict_book[book]
+        performance_list = [x/(book_mean+random.uniform(1,1.1)) for x in performance_list]
 
     # # To calculate the performance cumulatively
     # df["cumulative"] = 0
@@ -104,7 +105,7 @@ def performance_given_book(file_path : str, book:str,start_week : int = 0, end_w
     if only_week:
         df = df.drop_duplicates("week", keep='last')
 
-    dates_list, performance_list = calulate_performance_from_mtd_values(df)
+    dates_list, performance_list = calulate_performance_from_mtd_values(df,book)
     return dates_list, performance_list
 
 def performance_given_book_list(file_path:str, book_list:List,start_week : int = 0, end_week : int = 300,only_week:bool=False) -> Tuple[dict,dict]:
@@ -127,7 +128,7 @@ def performance_given_book_list(file_path:str, book_list:List,start_week : int =
 
     for book in book_list:
         dates,performance = performance_given_book(file_path,book,start_week,end_week,only_week=only_week)
-        print("Book: {0}, Length of Dates: {1}".format(book,len(dates)))
+        # print("Book: {0}, Length of Dates: {1}".format(book,len(dates)))
         dates_dict[book] = dates
         performance_dict[book] = performance
 
@@ -181,4 +182,48 @@ def combine_performance_given_book_list(dates_dict : dict, performance_dict :dic
     return total_date_performance_dict
 
 
+def precompute_performance_mean_of_books():
+    """Pre-computes performance mean of books.
 
+    Generates a dictionary and writes them into a pkl file.
+    """
+    book_list = misc.read_book_file(cfg.BOOK_FILE)
+    performance_mean_dict = {}
+
+    ## comment the dividing with mean in calulate_performance_from_mtd_values.
+    _,performance_dict = performance_given_book_list(cfg.PERFORMANCE_FILE,book_list,0,400)
+    for book,performance_list in performance_dict.items():
+        # print(book,performance_list)
+        if (len(performance_list) > 0):
+            performance_list = [float(x) for x in performance_list]
+            performance_mean = sum(performance_list)/len(performance_list)
+            performance_mean_dict[book] = performance_mean
+
+    print(performance_mean_dict)
+    misc.write_dict_in_file(performance_mean_dict,cfg.PKL_FILES+"/performance_mean.pkl")
+
+def precompute_performance_of_books_weekly():
+    """Pre-computes performance of all books weekly.
+
+    Generates a dictionary and writes them into a pkl file.
+    """
+    ## comment the dividing with mean in calulate_performance_from_mtd_values.
+    book_list = misc.read_book_file(cfg.BOOK_FILE)
+    performance_week_dict = {}
+    dates_dict, performance_dict = performance_given_book_list(cfg.PERFORMANCE_FILE, book_list, 0, 400,only_week=True)
+
+    for book,book_dates_list in dates_dict.items():
+        book_performance_list = performance_dict[book]
+        for book_date,book_performance in zip(book_dates_list,book_performance_list):
+            book_date_week = misc.calculate_week(book_date.to_datetime().date())
+            performance_week_dict[book] = performance_week_dict.get(book,{})
+            performance_week_dict[book][book_date_week] = book_performance
+
+    # print(performance_week_dict)
+    misc.write_dict_in_file(performance_week_dict, cfg.PKL_FILES + "/performance_weekly.pkl")
+
+
+if __name__ == "__main__":
+    # precompute_performance_mean_of_books()
+    # precompute_performance_of_books_weekly()
+    pass
