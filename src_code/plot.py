@@ -238,21 +238,21 @@ if __name__ == "__main__":
     # ====================Plotting K-core Files================================
     # =========================================================================
 
-    dates,y_list = network.compute_element_kcore_for_plots(cfg.KCORE_PERSONAL_TOTAL,123,200,"kcore_largest_cc_num_nodes",6)
-    legend_info = [str(i)+"-core" for i in range(len(y_list))]
-    plot_list_of_lists_vs_dates(dates,y_list,"Time","Number of Nodes in Largest Connected Component",
-                       "Number of Nodes in Largest Connected Component Vs Time : Personal",legend_info)
+    # dates,y_list = network.compute_element_kcore_for_plots(cfg.KCORE_PERSONAL_TOTAL,123,200,"kcore_largest_cc_num_nodes",6)
+    # legend_info = [str(i)+"-core" for i in range(len(y_list))]
+    # plot_list_of_lists_vs_dates(dates,y_list,"Time","Number of Nodes in Largest Connected Component",
+    #                    "Number of Nodes in Largest Connected Component Vs Time : Personal",legend_info)
+    # #
+    # dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_BUSINESS_TOTAL,123, 200, "kcore_largest_cc_num_nodes",6)
+    # legend_info = [str(i)+"-core" for i in range(len(y_list))]
+    # plot_list_of_lists_vs_dates(dates, y_list, "Time", "Number of Nodes in Largest Connected Component",
+    #                                  "Number of Nodes in Largest Connected Component Vs Time : Business", legend_info)
     #
-    dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_BUSINESS_TOTAL,123, 200, "kcore_largest_cc_num_nodes",6)
-    legend_info = [str(i)+"-core" for i in range(len(y_list))]
-    plot_list_of_lists_vs_dates(dates, y_list, "Time", "Number of Nodes in Largest Connected Component",
-                                     "Number of Nodes in Largest Connected Component Vs Time : Business", legend_info)
-
-    dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_JOINT_TOTAL, 123, 200, "kcore_largest_cc_num_nodes",
-                                                            6)
-    legend_info = [str(i) + "-core" for i in range(len(y_list))]
-    plot_list_of_lists_vs_dates(dates, y_list, "Time", "Number of Nodes in Largest Connected Component",
-                                "Number of Nodes in Largest Connected Component Vs Time : Joint", legend_info)
+    # dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_JOINT_TOTAL, 123, 200, "kcore_largest_cc_num_nodes",
+    #                                                         6)
+    # legend_info = [str(i) + "-core" for i in range(len(y_list))]
+    # plot_list_of_lists_vs_dates(dates, y_list, "Time", "Number of Nodes in Largest Connected Component",
+    #                             "Number of Nodes in Largest Connected Component Vs Time : Joint", legend_info)
 
     # =========================================================================
     # ====================Plotting hierarchy===================================
@@ -329,6 +329,9 @@ if __name__ == "__main__":
     # legend_info = ["sent-sentiment", "receive-sentiment", "within-sentiment"]
     #
     # plot_list_of_lists_vs_dates(dates_list, y_list, "Dates", "Sentiment", "Sentiment vs Dates", legend_info)
+    #
+    # # plot_list_vs_dates(dates_list,y_list[0],"Dates","Sent-Sentiment", "Sent-Sentiment vs Dates","MENG")
+    # # plot_list_vs_dates(dates_list, y_list[1], "Dates", "Receive-Sentiment", "Receive-Sentiment vs Dates", "MENG")
 
     # =========================================================================
     # ====================Plotting Message graph ==============================
@@ -337,3 +340,5 @@ if __name__ == "__main__":
     # subordinates_list = employee.subordinates_given_employee(employee_dict, "sapanski_lawrence")
     # message_matrix, message_adj_list, id_to_username_dict = network.create_matrix(cfg.SENTIMENT_PERSONAL+"im_df_week150.csv")
     # plot_message_graph(message_matrix,id_to_username_dict,employee_dict,cfg.PLOTS_DIR+"/message_graph_week150.png",subordinates_list,1)
+
+    pass
