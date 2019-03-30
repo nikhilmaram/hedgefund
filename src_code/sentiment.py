@@ -36,7 +36,7 @@ def sentiment_assign(text):
     return sentiment
 
 def sentiment_classify(dir_path):
-    """Creates a sentimnet column to the dataframe based on content.
+    """Creates a sentiment column to the dataframe based on content.
 
     Args:
         dir_path : directory where IM files are present.

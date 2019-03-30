@@ -81,8 +81,9 @@ def performance_given_book(file_path : str, book:str,start_week : int = 0, end_w
         dates_list: dates on which performance is present.
         performance_list : performance on given dates.
 
-    Performance is calculated by dividing PnL with mean of PnL for the given period.
+    Performance is calculated by dividing PnL with mean of PnL for the total period.
     We need to have a fraction because it is easy to add up performances for different books.
+    This function removes duplicates in the day and calculates the performance within given weeks.
     """
     df = pd.read_csv(file_path)
     # df = df[["date", "delta", "PnL_MTD_adjusted", "AccountingFile_PnL_MTD", "year_month"]]
@@ -119,8 +120,8 @@ def performance_given_book_list(file_path:str, book_list:List,start_week : int =
         only_week  : data is calculated weekly instead of each date.
 
     Returns:
-        dates: dates on which performance is present.
-        performance : performance on given dates.
+        dates_dict: dates on which performance is present. key - book, value - dates in which performance of the book is present.
+        performance_dict : performance on given dates. key - book, value - performance values of that book.
 
     """
     dates_dict = {}
