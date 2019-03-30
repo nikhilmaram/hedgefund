@@ -42,7 +42,7 @@ def check_series_stationary(x:List):
     print(dfoutput)
 
 def compute_causality(cause : List,effect : List,max_lag : int)-> dict:
-    """Computes if there is a causal relationship between x and y.
+    """Computes if there is a causal relationship between cause and effect.
 
     Args:
         cause : List .
@@ -52,6 +52,7 @@ def compute_causality(cause : List,effect : List,max_lag : int)-> dict:
     Returns:
         causality_dict : key - lag , value = Tuple(F-value,p-value, df_denom, df_num)
     """
+
     causality_dict = {}
     try:
         inp_2d = np.column_stack((effect,cause))
@@ -99,7 +100,7 @@ def compute_causal_relationships_performance_sentiment(performance_date_dict,sen
     performance_list, sentiment_list = misc.get_list_from_dicts_sorted_dates(performance_date_dict_common,
                                                                              sent_sentiment_dict_common)
 
-    sent_dict = compute_causality(sentiment_list, performance_list, max_lag)
+    sent_dict = compute_causality(performance_list, sentiment_list, max_lag)
     book_causal_dict["sent"] = sent_dict
 
     print("===============================RECEIVED==========================================")
@@ -109,7 +110,7 @@ def compute_causal_relationships_performance_sentiment(performance_date_dict,sen
     print(len(performance_date_dict_common), len(recv_sentiment_dict_common))
     performance_list, sentiment_list = misc.get_list_from_dicts_sorted_dates(performance_date_dict_common,
                                                                              recv_sentiment_dict_common)
-    recv_dict = compute_causality(sentiment_list, performance_list, max_lag)
+    recv_dict = compute_causality(performance_list,sentiment_list, max_lag)
     book_causal_dict["recv"] = recv_dict
 
     print("===============================WITHIN==========================================")
@@ -119,14 +120,14 @@ def compute_causal_relationships_performance_sentiment(performance_date_dict,sen
     print(len(performance_date_dict_common), len(within_sentiment_dict_common))
     performance_list, sentiment_list = misc.get_list_from_dicts_sorted_dates(performance_date_dict_common,
                                                                              within_sentiment_dict_common)
-    within_dict  = compute_causality(sentiment_list, performance_list, max_lag)
+    within_dict  = compute_causality(performance_list, sentiment_list, max_lag)
     book_causal_dict["within_dict"] = within_dict
 
     return book_causal_dict
 
 
 def compute_relationships_book_list_performance_sentiment(book_list: List, start_week, end_week, maximum_lag, only_week = False) -> dict:
-    """Computes relationships for all books present with sentiments.
+    """Computes relationships between performance of books in book list to sentiment of users corresponding to the book.
 
     Args:
         book_list : List of books for which relationships are calculated.
@@ -157,6 +158,7 @@ def compute_relationships_book_list_performance_sentiment(book_list: List, start
 
         ## Compute the sentiment corresponding to employee list for the given account.
 
+        print(performance_date_dict)
         sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict = sentiment. \
             compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_BUSINESS, employee_account_list, 4, True,
                                                        start_week, end_week, only_week=only_week)
@@ -285,25 +287,27 @@ if __name__ == "__main__":
     # ===========Computing causality given book list(performance & sentiment)=================
     # ========================================================================================
 
-    # # book_list = ["SALZ"]
-    # book_list = misc.read_book_file(cfg.BOOK_FILE)
-    # book_list_causal_dict = compute_relationships_book_list_performance_sentiment(book_list,start_week=123, end_week=265,
-    #                                                         maximum_lag= 5, only_week= False)
+    # book_list = ["SALZ"]
+    book_list = misc.read_book_file(cfg.BOOK_FILE)
+    book_list_causal_dict = compute_relationships_book_list_performance_sentiment(book_list,start_week=123, end_week=263,
+                                                            maximum_lag= 10, only_week= False)
+
+    # print(book_list_causal_dict)
+    misc.write_dict_in_file(book_list_causal_dict,cfg.PKL_FILES+"/books_causal_effect_cause_performance_effect_sentiment_daily.pkl")
+    output_dict = misc.read_file_into_dict(cfg.PKL_FILES+"/books_causal_effect_cause_performance_effect_sentiment_daily.pkl")
+    print(output_dict)
+
+    # # ========================================================================================
+    # # ===========Computing causality given book list(performance & kcore)=====================
+    # # =========================================================================================
+    # start_week = 123; end_week = 200 ; k_value = 6 ; max_lag = 20
+    # print("===============================BUSINESS==========================================")
     #
-    # # print(book_list_causal_dict)
-    # misc.write_dict_in_file(book_list_causal_dict,cfg.PKL_FILES+"/book_list_causality_daily.pkl")
-    # output_dict = misc.read_file_into_dict(cfg.PKL_FILES+"/book_list_causality_daily.pkl")
-    # print(output_dict)
+    # compute_relationships_performance_kcore(cfg.KCORE_BUSINESS,start_week=start_week,end_week=end_week,k_value=k_value,max_lag=max_lag)
+    # print("===============================PERSONAL==========================================")
+    #
+    # compute_relationships_performance_kcore(cfg.KCORE_PERSONAL, start_week=start_week, end_week=end_week, k_value=k_value, max_lag=max_lag)
+    # print("===============================JOINT==========================================")
+    # compute_relationships_performance_kcore(cfg.KCORE_JOINT,start_week=start_week, end_week= end_week, k_value= k_value, max_lag= max_lag)
 
-    # ========================================================================================
-    # ===========Computing causality given book list(performance & kcore)=====================
-    # =========================================================================================
-    start_week = 123; end_week = 200 ; k_value = 6 ; max_lag = 20
-    print("===============================BUSINESS==========================================")
-
-    compute_relationships_performance_kcore(cfg.KCORE_BUSINESS_TOTAL,start_week=start_week,end_week=end_week,k_value=k_value,max_lag=max_lag)
-    print("===============================PERSONAL==========================================")
-
-    compute_relationships_performance_kcore(cfg.KCORE_PERSONAL_TOTAL, start_week=start_week, end_week=end_week, k_value=k_value, max_lag=max_lag)
-    print("===============================JOINT==========================================")
-    compute_relationships_performance_kcore(cfg.KCORE_JOINT_TOTAL,start_week=start_week, end_week= end_week, k_value= k_value, max_lag= max_lag)
+    pass
