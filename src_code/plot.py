@@ -313,7 +313,7 @@ if __name__ == "__main__":
     # subordinates_list = account_to_employee_dict["MENG"]
     #
     # sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict = \
-    #     sentiment.compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL, subordinates_list,4,True,75,150,True)
+    #     sentiment.compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL, subordinates_list,4,False,True,75,150,True)
     #
     # dates_list = sorted(sent_sentiment_dict.keys())
     # sent_sentiment_list = [] ; recv_sentiment_list = [] ; within_sentiment_list = []
@@ -329,9 +329,49 @@ if __name__ == "__main__":
     # legend_info = ["sent-sentiment", "receive-sentiment", "within-sentiment"]
     #
     # plot_list_of_lists_vs_dates(dates_list, y_list, "Dates", "Sentiment", "Sentiment vs Dates", legend_info)
+
+    # plot_list_vs_dates(dates_list,y_list[0],"Dates","Sent-Sentiment", "Sent-Sentiment vs Dates","MENG")
+    # plot_list_vs_dates(dates_list, y_list[1], "Dates", "Receive-Sentiment", "Receive-Sentiment vs Dates", "MENG")
+
+    # ======================================================================================
+    # ====================Plotting sentiment outside to inside users ========================
+    # ==================================================================================
+    # account_to_employee_dict, employee_to_account_dict = employee.map_employee_account(cfg.TRADER_BOOK_ACCOUNT_FILE)
+    # subordinates_list = account_to_employee_dict["MENG"]
+    subordinates_list = employee.subordinates_given_employee(employee_dict, "carter_richard")
+    sent_sentiment_dict_outside, recv_sentiment_dict_outside, within_sentiment_dict_outside = \
+            sentiment.compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL, subordinates_list,
+                                                                 num_process=4,complete_network=False,in_network=False,
+                                                                 start_week=75,end_week=150,only_week=True)
+
+    sent_sentiment_dict_inside, recv_sentiment_dict_inside, within_sentiment_dict_inside = \
+        sentiment.compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL, subordinates_list,
+                                                             num_process=4, complete_network=False, in_network=True,
+                                                             start_week=75, end_week=150, only_week=True)
+
     #
-    # # plot_list_vs_dates(dates_list,y_list[0],"Dates","Sent-Sentiment", "Sent-Sentiment vs Dates","MENG")
-    # # plot_list_vs_dates(dates_list, y_list[1], "Dates", "Receive-Sentiment", "Receive-Sentiment vs Dates", "MENG")
+    dates_list = sorted(sent_sentiment_dict_outside.keys())
+    sent_sentiment_list_outside = [] ; recv_sentiment_list_outside = [] ; within_sentiment_list_outside = []
+    sent_sentiment_list_inside = [] ; recv_sentiment_list_inside = []; within_sentiment_list_inside = []
+    print(dates_list)
+    for curr_date in dates_list:
+        sent_sentiment_list_outside.append(sent_sentiment_dict_outside[curr_date])
+        recv_sentiment_list_outside.append(recv_sentiment_dict_outside[curr_date])
+        within_sentiment_list_outside.append(within_sentiment_dict_outside[curr_date])
+
+        sent_sentiment_list_inside.append(sent_sentiment_dict_inside[curr_date])
+        recv_sentiment_list_inside.append(recv_sentiment_dict_inside[curr_date])
+        within_sentiment_list_inside.append(within_sentiment_dict_inside[curr_date])
+    #
+    dates_list = [datetime.strptime(x, '%Y-%m-%d') for x in dates_list]
+    #
+    # y_list = [sent_sentiment_list_outside, sent_sentiment_list_inside]
+    # legend_info = ["sent-sentiment-outside", "sent-sentiment-inside"]
+
+    y_list = [recv_sentiment_list_outside, recv_sentiment_list_inside]
+    legend_info = ["receive-sentiment-outside", "receive-sentiment-inside"]
+    #
+    plot_list_of_lists_vs_dates(dates_list, y_list, "Dates", "Sentiment", "Sentiment vs Dates", legend_info)
 
     # =========================================================================
     # ====================Plotting Message graph ==============================
@@ -340,5 +380,8 @@ if __name__ == "__main__":
     # subordinates_list = employee.subordinates_given_employee(employee_dict, "sapanski_lawrence")
     # message_matrix, message_adj_list, id_to_username_dict = network.create_matrix(cfg.SENTIMENT_PERSONAL+"im_df_week150.csv")
     # plot_message_graph(message_matrix,id_to_username_dict,employee_dict,cfg.PLOTS_DIR+"/message_graph_week150.png",subordinates_list,1)
+
+
+
 
     pass
