@@ -39,7 +39,7 @@ class SentimentModuleTest(unittest.TestCase):
         self.assertEqual(recv_sentiment_exp,recv_sentiment_obs)
 
         sent_sentiment_obs, recv_sentiment_obs = sentiment.sentiment_given_user(im_df, "wade_peter",in_network=False)
-        sent_sentiment_exp = 0.4
+        sent_sentiment_exp = 0.25
         recv_sentiment_exp = 0.5
 
         self.assertEqual(sent_sentiment_exp, sent_sentiment_obs)
@@ -52,7 +52,9 @@ class SentimentModuleTest(unittest.TestCase):
     def test_sentiment_given_user_list(self):
         im_df = pd.read_csv(cfg.IM_TEST_FILE)
 
-        sent_sentiment_obs, recv_sentiment_obs, within_sentiment_obs = sentiment.sentiment_given_user_list(im_df,["wade_peter","sherrick_michael"],in_network=True)
+
+        sent_sentiment_obs, recv_sentiment_obs, within_sentiment_obs = sentiment.\
+            sentiment_given_user_list(im_df,["wade_peter","sherrick_michael"],in_network=True)
 
         sent_sentiment_exp = sentiment.resultant_sentiment([-1,1])
         recv_sentiment_exp = sentiment.resultant_sentiment([1])
@@ -62,8 +64,19 @@ class SentimentModuleTest(unittest.TestCase):
         self.assertEqual(recv_sentiment_exp, recv_sentiment_obs)
         self.assertEqual(within_sentiment_exp, within_sentiment_obs)
 
-        sent_sentiment_obs, recv_sentiment_obs, within_sentiment_obs = sentiment.sentiment_given_user_list(im_df,["wade_peter","sherrick_michael"],
-                                                                                                           in_network=False)
+        sent_sentiment_obs, recv_sentiment_obs, within_sentiment_obs = sentiment.\
+            sentiment_given_user_list(im_df, ["wade_peter", "sherrick_michael"],in_network=False)
+
+        sent_sentiment_exp = sentiment.resultant_sentiment([-1, 1, 1])
+        recv_sentiment_exp = sentiment.resultant_sentiment([1])
+        within_sentiment_exp = sentiment.resultant_sentiment([1])
+
+        self.assertEqual(sent_sentiment_exp, sent_sentiment_obs)
+        self.assertEqual(recv_sentiment_exp, recv_sentiment_obs)
+        self.assertEqual(within_sentiment_exp, within_sentiment_obs)
+
+        sent_sentiment_obs, recv_sentiment_obs, within_sentiment_obs = sentiment.\
+            sentiment_given_user_list(im_df,["wade_peter","sherrick_michael"],in_network=False,complete_network=True)
 
         sent_sentiment_exp = sentiment.resultant_sentiment([-1,1,1,-1,1])
         recv_sentiment_exp = sentiment.resultant_sentiment([1,1])
@@ -73,14 +86,14 @@ class SentimentModuleTest(unittest.TestCase):
         self.assertEqual(recv_sentiment_exp, recv_sentiment_obs)
         self.assertEqual(within_sentiment_exp, within_sentiment_obs)
 
-# =========================================================================
+    # =========================================================================
     # ================Checks if the sentiment dictionary is created correctly==
     # =========================================================================
 
     def test_compute_sentiments_from_filelist(self):
         return_dict = {}
         sent_sentiment_dict_obs, recv_sentiment_dict_obs, within_sentiment_dict_obs = sentiment.\
-            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter","sherrick_michael"],1,True,end_week=400)
+            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter","sherrick_michael"],1,in_network=True,end_week=400)
 
         # [[sent_sentiment_dict_obs, recv_sentiment_dict_obs, within_sentiment_dict_obs]] = return_dict.values()
 
@@ -97,7 +110,8 @@ class SentimentModuleTest(unittest.TestCase):
         self.assertDictEqual(within_sentiment_dict_exp,within_sentiment_dict_obs)
 
         sent_sentiment_dict_obs, recv_sentiment_dict_obs, within_sentiment_dict_obs = sentiment. \
-            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter", "sherrick_michael"], 1, False,end_week=400)
+            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter", "sherrick_michael"], 1, in_network=False,
+                                                       complete_network=True,end_week=400)
 
         sent_sentiment_dict_exp = {}; recv_sentiment_dict_exp = {}; within_sentiment_dict_exp = {}
         sent_sentiment_dict_exp[date] = sentiment.resultant_sentiment([-1,1,1,-1,1])
@@ -109,5 +123,5 @@ class SentimentModuleTest(unittest.TestCase):
         self.assertDictEqual(within_sentiment_dict_exp, within_sentiment_dict_obs)
 
         sent_sentiment_dict_obs, recv_sentiment_dict_obs, within_sentiment_dict_obs = sentiment. \
-            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter", "sherrick_michael"], 1, True,
+            compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter", "sherrick_michael"], 1, in_network=True,
                                                        end_week=400,only_week=True)

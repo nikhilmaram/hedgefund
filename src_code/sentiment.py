@@ -53,8 +53,6 @@ def sentiment_classify(dir_path):
             df['sentiment'] = df['content'].apply(lambda x: sentiment_assign(x))
             df.to_csv("./sentiment_personal/"+file_name)
 
-
-
 def resultant_sentiment(sentiment_list : List) -> float:
     """Resultant sentiment given sentiment list. i.e resultant sentiment value for all the sentiments in the input list.
 
@@ -77,27 +75,40 @@ def resultant_sentiment(sentiment_list : List) -> float:
 
     return sentiment
 
-def sentiment_given_user(im_df : pd.DataFrame ,user_name : str, in_network:bool = True) -> Tuple[float,float]:
+# =========================================================================
+# ============= Generate sentiments given user ============================
+# =========================================================================
+
+def sentiment_given_user(im_df : pd.DataFrame ,user_name : str, complete_network:bool = False, in_network:bool = True) -> Tuple[float,float]:
     """Calculates the sentiment for given user.
 
     Args:
         im_df : Input Dataframe of IMs.
         user_name : User whose sentiment needs to be calculated.
-        in_network : Boolean Variable determines whether the messages within the hedgefund network be considered. (True : In , False: All)
-
+        complete_network : complete network to be considered (True: complete network, False: network depending on in_network).
+        in_network : Boolean Variable determines whether the messages within the hedgefund network be considered. (True : In , False: Outside)
     Returns:
         sent_sentiment : sentiment of send messages from the user.
         recv_sentiment : sentiment of received messages to the user.
     """
 
-    if in_network:
-        im_df = im_df[im_df["sender_in_network"] == 1]
-        im_df = im_df[im_df["receiver_in_network"] == 1]
 
     ## dataframe with sender as input user.
     im_df_sent = im_df[im_df["sender_user_name"] == user_name]
+    if not complete_network:
+        if in_network:
+            im_df_sent = im_df_sent[im_df_sent["receiver_in_network"] == 1]
+        else:
+            im_df_sent = im_df_sent[im_df_sent["receiver_in_network"] == 0]
+
     ## dataframe with receiver as input user.
     im_df_recv = im_df[im_df["receiver_user_name"] == user_name]
+    if not complete_network:
+        if in_network:
+            im_df_recv = im_df_recv[im_df_recv["sender_in_network"] == 1]
+        else:
+            im_df_recv = im_df_recv[im_df_recv["sender_in_network"] == 0]
+
 
     sent_sentiment_list = im_df_sent["sentiment"].tolist()
     recv_sentiment_list = im_df_recv["sentiment"].tolist()
@@ -111,30 +122,38 @@ def sentiment_given_user(im_df : pd.DataFrame ,user_name : str, in_network:bool 
 # ============= Generate sentiments given user list========================
 # =========================================================================
 
-def sentiment_given_user_list(im_df : pd.DataFrame, user_name_list, in_network : bool = True) -> Tuple[float,float,float]:
+def sentiment_given_user_list(im_df : pd.DataFrame, user_name_list, complete_network:bool = False, in_network : bool = True) -> Tuple[float,float,float]:
     """Calculates the combined sentiment of all users in user_name_list to others and within.
 
     Args:
         im_df : Input Dataframe of IMs.
         user_name_list : User Name list.
-        in_network : Boolean Variable determines whether the messages within the hedgefund network be considered. (True : In , False: All)
-
+        complete_network : complete network to be considered (True: complete network, False: network depending on in_network).
+        in_network : Boolean Variable determines whether the messages within the hedgefund network be considered. (True : In , False: outside)
     Returns:
         sent_sentiment : sentiment of send messages from the user list to others.
         recv_sentiment : sentiment of received messages from others to the user list.
         within_sentiment : sentiment of messages within the users.
     """
 
-    if in_network:
-        im_df = im_df[im_df["sender_in_network"] == 1]
-        im_df = im_df[im_df["receiver_in_network"] == 1]
 
     im_df_sent = im_df[im_df["sender_user_name"].isin(user_name_list)]
     ## This might also contains receivers which are in user_name_list, so removing the rows in which receivers are not in user_name_list.
     im_df_sent = im_df_sent[~im_df_sent["receiver_user_name"].isin(user_name_list)]
+    if not complete_network:
+        if in_network:
+            im_df_sent = im_df_sent[im_df_sent["receiver_in_network"] == 1]
+        else:
+            im_df_sent = im_df_sent[im_df_sent["receiver_in_network"] == 0]
 
     im_df_recv = im_df[im_df["receiver_user_name"].isin(user_name_list)]
     im_df_recv = im_df_recv[~im_df_recv["sender_user_name"].isin(user_name_list)]
+    if not complete_network:
+        if in_network:
+            im_df_recv = im_df_recv[im_df_recv["sender_in_network"] == 1]
+        else:
+            im_df_recv = im_df_recv[im_df_recv["sender_in_network"] == 0]
+
 
     im_df_within = im_df[im_df["sender_user_name"].isin(user_name_list)]
     im_df_within = im_df_within[im_df_within["receiver_user_name"].isin(user_name_list)]
@@ -149,20 +168,20 @@ def sentiment_given_user_list(im_df : pd.DataFrame, user_name_list, in_network :
 
     return sent_sentiment, recv_sentiment , within_sentiment
 
-
 # =========================================================================
 # ============= Generate sentiments from all files=========================
 # =========================================================================
 
 def compute_sentiments_from_filelist(file_list : List, src_dir_path:str, user_name_list:List,
-                                     return_dict:dict, in_network:bool = True,only_week:bool=False):
+                                     return_dict:dict, complete_network:bool= False,in_network:bool = True, only_week:bool=False):
     """Computes sentiments from all files in file_list for the users present in user_name_list.
 
      Args:
          src_dir_path : path to the input files.
          user_name_list : user names for whose sentiment needs to be calculated.
-         in_network : Boolean Variable determines whether the messages within the hedgefund network be considered. (True : In , False: All)
          return_dict : To pass the return value for multiprocess invocation.
+         complete_network : complete network to be considered (True: complete network, False: network depending on in_network).
+         in_network : Boolean Variable determines whether the messages within the hedgefund network be considered. (True : In , False: outside)
          only_week           : data is calculated weekly instead of each date.
 
      sent_sentiment_dict = sentiment dictionary of sent messages. key - date ; value - sent_sentiment_value.
@@ -183,7 +202,8 @@ def compute_sentiments_from_filelist(file_list : List, src_dir_path:str, user_na
 
         if only_week:
             ## sentiment is calculated over week data.
-            sent_sentiment, recv_sentiment, within_sentiment = sentiment_given_user_list(df, user_name_list,in_network)
+            sent_sentiment, recv_sentiment, within_sentiment = sentiment_given_user_list(
+                df, user_name_list,complete_network=complete_network,in_network=in_network)
             ## Calculate the monday of the week.
             week_num = int(file_name.split('.')[0].split('_')[-1][4:])
             curr_date = misc.calculate_date(week_num=week_num).strftime("%Y-%m-%d")
@@ -193,7 +213,8 @@ def compute_sentiments_from_filelist(file_list : List, src_dir_path:str, user_na
         else:
             ## Group the data according to curr_date.
             for curr_date, df_curr_date in df.groupby("day"):
-                sent_sentiment, recv_sentiment, within_sentiment = sentiment_given_user_list(df_curr_date,user_name_list,in_network)
+                sent_sentiment, recv_sentiment, within_sentiment = sentiment_given_user_list(
+                    df_curr_date,user_name_list, complete_network=complete_network,in_network=in_network)
                 sent_sentiment_dict[curr_date] = sent_sentiment
                 recv_sentiment_dict[curr_date] = recv_sentiment
                 within_sentiment_dict[curr_date] = within_sentiment
@@ -202,8 +223,8 @@ def compute_sentiments_from_filelist(file_list : List, src_dir_path:str, user_na
     # return sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict
 
 
-def compute_sentiments_from_filelist_multiproc(src_dir_path : str, user_name_list: List,num_process :int ,
-                                               in_network:bool = True, start_week : int = 0,
+def compute_sentiments_from_filelist_multiproc(src_dir_path : str, user_name_list: List,num_process :int,
+                                               complete_network: bool = False, in_network:bool = True, start_week : int = 0,
                                                end_week : int = 264,only_week:bool=False):
     """Runs the compute_sentiments_from_filelist on multiple process.
 
@@ -211,6 +232,7 @@ def compute_sentiments_from_filelist_multiproc(src_dir_path : str, user_name_lis
         src_dir_path        : path to the files present in file_list
         user_name_list      : users for whom sentiment is calculated.
         num_process         : Number of process.
+        complete_network : complete network to be considered (True: complete network, False: network depending on in_network).
         in_network          : messages considered within/outside network.
         start_week          : starting week of files to be considered.
         end_week            : Ending week of the to be considered.
@@ -235,7 +257,7 @@ def compute_sentiments_from_filelist_multiproc(src_dir_path : str, user_name_lis
     count = 1
     for file_list in list_of_file_list:
         p = multiprocessing.Process(target=compute_sentiments_from_filelist,
-                                    args=(file_list, src_dir_path, user_name_list,return_dict,in_network,only_week),
+                                    args=(file_list, src_dir_path, user_name_list,return_dict,complete_network,in_network,only_week),
                                     name=count)
         process_list.append(p)
         p.start()

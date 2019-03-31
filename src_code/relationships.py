@@ -131,7 +131,8 @@ def compute_causal_relationships_performance_sentiment(performance_date_dict,sen
     return book_causal_dict
 
 
-def compute_relationships_book_list_performance_sentiment(book_list: List, start_week, end_week, maximum_lag, only_week = False) -> dict:
+def compute_relationships_book_list_performance_sentiment(book_list: List, start_week, end_week, maximum_lag, only_week = False,
+                                                          in_network:bool = True, complete_network:bool = False) -> dict:
     """Computes relationships between performance of books in book list to sentiment of users corresponding to the book.
 
     Args:
@@ -140,6 +141,8 @@ def compute_relationships_book_list_performance_sentiment(book_list: List, start
         end_week : end week.
         maximum_lag : maximum lag to check for causality.
         only_week :  For weekly data to be considered instead of daily.
+        in_network : Boolean Variable determines whether the messages within the hedgefund network be considered. (True : In , False: Outside)
+        complete_network : complete network to be considered.
 
     Returns:
         book_list_causal_dict : key - book, value - book_causal_dict
@@ -165,8 +168,9 @@ def compute_relationships_book_list_performance_sentiment(book_list: List, start
 
         print(performance_date_dict)
         sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict = sentiment. \
-            compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_BUSINESS, employee_account_list, 4, True,
-                                                       start_week, end_week, only_week=only_week)
+            compute_sentiments_from_filelist_multiproc(src_dir_path= cfg.SENTIMENT_BUSINESS, user_name_list= employee_account_list,
+                                                       num_process= 4,in_network= in_network,complete_network=complete_network,
+                                                       start_week = start_week,end_week= end_week, only_week=only_week)
 
         book_causal_dict = compute_causal_relationships_performance_sentiment(performance_date_dict, sent_sentiment_dict, recv_sentiment_dict,
                                      within_sentiment_dict, maximum_lag)
@@ -288,27 +292,6 @@ def compute_relationships_performance_kcore(src_dir_path: str, start_week : int,
 
 if __name__ == "__main__":
 
-    # ========================================================================================
-    # ===========Computing causality given book list(performance & sentiment)=================
-    # ========================================================================================
-
-    # book_list = ["MENG"]
-    book_list = misc.read_book_file(cfg.BOOK_FILE)
-    book_list_causal_dict = compute_relationships_book_list_performance_sentiment(book_list,start_week=123, end_week=263,
-                                                            maximum_lag= 10, only_week= False)
-
-    misc.write_dict_in_file(book_list_causal_dict,cfg.PKL_FILES+"/books_causal_effect_cause_sentiment_effect_performance_daily.pkl")
-    output_dict = misc.read_file_into_dict(cfg.PKL_FILES+"/books_causal_effect_cause_sentiment_effect_performance_daily.pkl")
-    print(output_dict)
-
-
-    # for book,dict1 in book_list_causal_dict.items():
-    #     for msg_type,dict2 in dict1.items():
-    #         print("==============================={0}==========================================".format(msg_type))
-    #         for lag, dict3 in dict2.items():
-    #             print(lag,dict3)
-
-
     # # ========================================================================================
     # # ===========Computing causality given book list(performance & kcore)=====================
     # # =========================================================================================
@@ -322,5 +305,54 @@ if __name__ == "__main__":
     # compute_relationships_performance_kcore(cfg.KCORE_PERSONAL, start_week=start_week, end_week=end_week, k_value=k_value, max_lag=max_lag)
     # print("===============================JOINT==========================================")
     # compute_relationships_performance_kcore(cfg.KCORE_JOINT,start_week=start_week, end_week= end_week, k_value= k_value, max_lag= max_lag)
+
+    # ===========================================================================================================
+    # ===========Computing causality given book list(performance & sentiment) in_network = True=================
+    # ===========================================================================================================
+
+    # book_list = ["MENG"]
+    # book_list = misc.read_book_file(cfg.BOOK_FILE)
+    # book_list_causal_dict = compute_relationships_book_list_performance_sentiment(book_list, start_week=123,
+    #                                                                               end_week=263,
+    #                                                                               maximum_lag=10, only_week=False,
+    #                                                                               complete_network=False,
+    #                                                                               in_network=True)
+    #
+    # misc.write_dict_in_file(book_list_causal_dict,
+    #                         cfg.PKL_FILES + "/books_causal_effect_cause_sentiment_effect_performance_daily.pkl")
+    # output_dict = misc.read_file_into_dict(
+    #     cfg.PKL_FILES + "/books_causal_effect_cause_sentiment_effect_performance_daily.pkl")
+    # print(output_dict)
+
+    # for book,dict1 in book_list_causal_dict.items():
+    #     for msg_type,dict2 in dict1.items():
+    #         print("==============================={0}==========================================".format(msg_type))
+    #         for lag, dict3 in dict2.items():
+    #             print(lag,dict3)
+
+    # ===========================================================================================================
+    # ===========Computing causality given book list(performance & sentiment) in_network = False=================
+    # ===========================================================================================================
+
+    # book_list = ["MENG"]
+    book_list = misc.read_book_file(cfg.BOOK_FILE)
+    book_list_causal_dict = compute_relationships_book_list_performance_sentiment(book_list, start_week=123,
+                                                                                  end_week=263,
+                                                                                  maximum_lag=10, only_week=False,
+                                                                                  complete_network=False,
+                                                                                  in_network=False)
+
+    misc.write_dict_in_file(book_list_causal_dict,
+                            cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl")
+    output_dict = misc.read_file_into_dict(
+        cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl")
+    print(output_dict)
+
+    # for book, dict1 in book_list_causal_dict.items():
+    #     for msg_type,dict2 in dict1.items():
+    #             print("==============================={0}==========================================".format(msg_type))
+    #             for lag, dict3 in dict2.items():
+    #                 print(lag,dict3)
+
 
     pass
