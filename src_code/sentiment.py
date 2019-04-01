@@ -170,37 +170,6 @@ def sentiment_given_user_list(im_df : pd.DataFrame, user_name_list, complete_net
 
 
 # =========================================================================
-# ============= Generate sentiments between two user lists=================
-# =========================================================================
-def sentiment_between_two_user_lists(im_df : pd.DataFrame, user_name_list1:List, user_name_list2:List) -> float:
-    """Generates sentiments between two user lists.
-
-    Args:
-        im_df : Input Dataframe of IMs.
-        user_name_list1 : First User Name list.
-        user_name_list2 : Second User Name list.
-
-    Returns:
-        between_sentiment : Sentiment value between user lists.
-
-    """
-    im_df_between = im_df[im_df["sender_user_name"].isin(user_name_list1)]
-    im_df_between = im_df_between[im_df_between["receiver_user_name"].isin(user_name_list2)]
-
-    im_df_temp = im_df[im_df["sender_user_name"].isin(user_name_list2)]
-    im_df_temp = im_df_temp[im_df_temp["receiver_user_name"].isin(user_name_list1)]
-
-    im_df_between = pd.concat([im_df_between,im_df_temp])
-
-    between_sentiment_list = im_df_between["sentiment"].tolist()
-
-    between_sentiment = resultant_sentiment(between_sentiment_list)
-
-    return between_sentiment
-
-
-
-# =========================================================================
 # ============= Generate sentiments from all files=========================
 # =========================================================================
 
@@ -305,3 +274,124 @@ def compute_sentiments_from_filelist_multiproc(src_dir_path : str, user_name_lis
 
 
     return sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict
+
+
+# =========================================================================
+# ============= Generate sentiments between two user lists=================
+# =========================================================================
+def sentiment_between_two_user_lists(im_df : pd.DataFrame, user_name_list1:List, user_name_list2:List) -> float:
+    """Generates sentiments from  user_name_list1 to user_name_list2.
+
+    Args:
+        im_df : Input Dataframe of IMs.
+        user_name_list1 : First User Name list.
+        user_name_list2 : Second User Name list.
+
+    Returns:
+        between_sentiment : Sentiment value between user lists.
+
+    """
+    im_df_between = im_df[im_df["sender_user_name"].isin(user_name_list1)]
+    im_df_between = im_df_between[im_df_between["receiver_user_name"].isin(user_name_list2)]
+
+    # im_df_temp = im_df[im_df["sender_user_name"].isin(user_name_list2)]
+    # im_df_temp = im_df_temp[im_df_temp["receiver_user_name"].isin(user_name_list1)]
+    #
+    # im_df_between = pd.concat([im_df_between,im_df_temp])
+
+    between_sentiment_list = im_df_between["sentiment"].tolist()
+
+    between_sentiment = resultant_sentiment(between_sentiment_list)
+
+    return between_sentiment
+
+# =========================================================================
+# ============= Generate Between sentiments from all files=================
+# =========================================================================
+
+def compute_between_sentiments_from_filelist(file_list : List, src_dir_path:str, user_name_list1:List,user_name_list2:List,
+                                     return_dict:dict, only_week:bool=False):
+    """Computes sentiments from all files in file_list between two user lists.
+
+     Args:
+         src_dir_path : path to the input files.
+         user_name_list1 : First User Name list.
+         user_name_list2 : Second User Name list.
+         return_dict : To pass the return value for multiprocess invocation.
+         only_week           : data is calculated weekly instead of each date.
+
+     between_sentiment_dict = sentiment dictionary of between messages. key - date ; value - between_sentiment_value.
+     """
+
+    process_count = multiprocessing.current_process().name
+    print("In compute_between_sentiments_from_filelist function", only_week)
+    between_sentiment_dict = {}
+
+    for file_name in file_list:
+        # print(file_name)
+        file_path = os.path.join(src_dir_path,file_name)
+        df = pd.read_csv(file_path)
+
+        if only_week:
+            ## sentiment is calculated over week data.
+            between_sentiment = sentiment_between_two_user_lists(
+                df, user_name_list1 = user_name_list1,user_name_list2=user_name_list2)
+            ## Calculate the monday of the week.
+            week_num = int(file_name.split('.')[0].split('_')[-1][4:])
+            curr_date = misc.calculate_date(week_num=week_num).strftime("%Y-%m-%d")
+            between_sentiment_dict[curr_date] = between_sentiment
+        else:
+            ## Group the data according to curr_date.
+            for curr_date, df_curr_date in df.groupby("day"):
+                between_sentiment = sentiment_between_two_user_lists(
+                    df_curr_date,user_name_list1 = user_name_list1,user_name_list2=user_name_list2)
+                between_sentiment_dict[curr_date] = between_sentiment
+
+    return_dict[process_count] = [between_sentiment_dict]
+    # return sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict
+
+
+def compute_between_sentiments_from_filelist_multiproc(src_dir_path : str, user_name_list1: List,user_name_list2: List,
+                                                       num_process :int,start_week : int = 0,end_week : int = 264,
+                                                       only_week:bool=False) -> dict:
+    """Runs the compute_between_sentiments_from_filelist on multiple process.
+
+    Args:
+        src_dir_path        : path to the files present in file_list
+        user_name_list1 : First User Name list.
+        user_name_list2 : Second User Name list.
+        num_process         : Number of process.
+        start_week          : starting week of files to be considered.
+        end_week            : Ending week of the to be considered.
+        only_week           : data is calculated weekly instead of each date.
+
+    Returns:
+        between_sentiment_dict = sentiment dictionary of between messages. key - date ; value - between_sentiment_value.
+    """
+
+    between_sentiment_dict = {}
+    list_of_file_list = misc.splitting_all_files(src_dir_path, num_process,start_week,end_week)
+
+    process_list = []
+
+    ## Need a dictionary as we need to collect output from each process.
+    manager = multiprocessing.Manager()
+    return_dict = manager.dict()
+    count = 1
+    for file_list in list_of_file_list:
+        p = multiprocessing.Process(target=compute_between_sentiments_from_filelist,
+                                    args=(file_list, src_dir_path, user_name_list1,user_name_list2,return_dict,only_week),
+                                    name=count)
+        process_list.append(p)
+        p.start()
+        count = count + 1
+
+    for process in process_list:
+        process.join()
+
+    for process, sentiment_dicts_list in return_dict.items():
+        between_sentiment_dict.update(sentiment_dicts_list[0])
+
+
+
+    return between_sentiment_dict
