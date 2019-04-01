@@ -238,14 +238,6 @@ def map_employee_account(file_path : str) -> Tuple[dict,dict]:
     return account_to_employee_dict,employee_to_account_dict
 
 
-# =========================================================================
-# ==================== Compute necessary dictionaries =====================
-# =========================================================================
-address_to_user_dict,user_to_address_dict = map_user_address(cfg.ADDRESS_LINK_FILE)
-employee_dict = get_emplpoyees_from_file(cfg.EMPLOYEE_MASTER_FILE)
-employee_list = list(employee_dict.keys())
-account_to_employee_dict,employee_to_account_dict = map_employee_account(cfg.TRADER_BOOK_ACCOUNT_FILE)
-# =========================================================================
 
 def lambda_func_user_address_mapping(address : str) -> str:
     """Lambda function that maps user address to user name.
@@ -341,6 +333,7 @@ def subordinates_given_employee(employee_dict:dict, inp_employee_name:str) -> Li
     return subordinates_list
 
 
+
 # =========================================================================
 # ==================== Books given employee List===========================
 # =========================================================================
@@ -363,3 +356,16 @@ def books_given_employee_list(inp_employee_list : List) -> List:
 
     book_list = sorted(list(book_set))
     return book_list
+
+
+
+# =========================================================================
+# ==================== Compute necessary dictionaries =====================
+# =========================================================================
+address_to_user_dict,user_to_address_dict = map_user_address(cfg.ADDRESS_LINK_FILE)
+employee_dict = get_emplpoyees_from_file(cfg.EMPLOYEE_MASTER_FILE)
+employee_list = list(employee_dict.keys())
+account_to_employee_dict,employee_to_account_dict = map_employee_account(cfg.TRADER_BOOK_ACCOUNT_FILE)
+employee_dict = create_employee_hierarchy(employee_dict)
+# =========================================================================
+
