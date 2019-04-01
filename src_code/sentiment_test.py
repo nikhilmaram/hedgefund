@@ -125,3 +125,24 @@ class SentimentModuleTest(unittest.TestCase):
         sent_sentiment_dict_obs, recv_sentiment_dict_obs, within_sentiment_dict_obs = sentiment. \
             compute_sentiments_from_filelist_multiproc(cfg.TEST_DIR, ["wade_peter", "sherrick_michael"], 1, in_network=True,
                                                        end_week=400,only_week=True)
+
+    # =========================================================================
+    # ========Checks calculated sentiment value between two lists.=============
+    # =========================================================================
+
+    def test_sentiment_between_two_user_lists(self):
+        im_df = pd.read_csv(cfg.IM_TEST_FILE)
+
+        between_sentiment_obs = sentiment.sentiment_between_two_user_lists(im_df,["sherrick_michael","cross_brent"],["wade_peter"])
+        between_sentiment_exp = sentiment.resultant_sentiment([1])
+        self.assertAlmostEquals(between_sentiment_exp,between_sentiment_obs,delta=0.00001)
+
+        between_sentiment_obs = sentiment.sentiment_between_two_user_lists(im_df, ["sherrick_michael", "cross_brent"],
+                                                                           ["wade_peter","tradermiller"])
+        between_sentiment_exp = sentiment.resultant_sentiment([1])
+        self.assertAlmostEquals(between_sentiment_exp, between_sentiment_obs, delta=0.00001)
+
+        between_sentiment_obs = sentiment.sentiment_between_two_user_lists(im_df, ["sherrick_michael", "cross_brent","tradermiller"],
+                                                                           ["wade_peter"])
+        between_sentiment_exp = sentiment.resultant_sentiment([1,-1,1,1,1])
+        self.assertAlmostEquals(between_sentiment_exp, between_sentiment_obs, delta=0.00001)
