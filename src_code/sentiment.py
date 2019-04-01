@@ -168,6 +168,38 @@ def sentiment_given_user_list(im_df : pd.DataFrame, user_name_list, complete_net
 
     return sent_sentiment, recv_sentiment , within_sentiment
 
+
+# =========================================================================
+# ============= Generate sentiments between two user lists=================
+# =========================================================================
+def sentiment_between_two_user_lists(im_df : pd.DataFrame, user_name_list1:List, user_name_list2:List) -> float:
+    """Generates sentiments between two user lists.
+
+    Args:
+        im_df : Input Dataframe of IMs.
+        user_name_list1 : First User Name list.
+        user_name_list2 : Second User Name list.
+
+    Returns:
+        between_sentiment : Sentiment value between user lists.
+
+    """
+    im_df_between = im_df[im_df["sender_user_name"].isin(user_name_list1)]
+    im_df_between = im_df_between[im_df_between["receiver_user_name"].isin(user_name_list2)]
+
+    im_df_temp = im_df[im_df["sender_user_name"].isin(user_name_list2)]
+    im_df_temp = im_df_temp[im_df_temp["receiver_user_name"].isin(user_name_list1)]
+
+    im_df_between = pd.concat([im_df_between,im_df_temp])
+
+    between_sentiment_list = im_df_between["sentiment"].tolist()
+
+    between_sentiment = resultant_sentiment(between_sentiment_list)
+
+    return between_sentiment
+
+
+
 # =========================================================================
 # ============= Generate sentiments from all files=========================
 # =========================================================================
