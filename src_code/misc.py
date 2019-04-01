@@ -248,3 +248,17 @@ def get_list_from_dicts_sorted_dates(dict_1 : dict,dict_2 : dict)-> Tuple[List,L
         output_list_2.append(dict_2[curr_date])
 
     return output_list_1,output_list_2
+
+
+def print_causality_dict(causality_dict):
+    """Prints causality dict.
+
+    Args:
+        causality_dict : Input dictionary.
+
+    Returns:
+        None.
+    """
+
+    for lag, tuple_values in causality_dict.items():
+        print("Lag : {0},  Values: {1}".format(lag,tuple_values))

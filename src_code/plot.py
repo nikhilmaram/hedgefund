@@ -20,7 +20,7 @@ import relationships
 
 
 
-def plot_list_of_lists_vs_dates(x :List,y_list : List[List],xlabel :str,ylabel: str,title:str,legend_info:List):
+def plot_list_of_lists_vs_dates(x :List,y_list : List[List],xlabel :str = "",ylabel: str="",title:str="",legend_info:List=[]):
     """Plots y (list of lists) against x (list).
 
     Args:
@@ -37,7 +37,7 @@ def plot_list_of_lists_vs_dates(x :List,y_list : List[List],xlabel :str,ylabel: 
         # plt.plot(x, y_list[i],'-o', label='%d-core' % (i+1))
         ax.plot_date(x, y_list[i], '-o', label=legend_info[i])
 
-    months = MonthLocator(range(1, 13), bymonthday=1, interval=2)
+    months = MonthLocator(range(1, 13), bymonthday=1, interval=1)
     monthsFmt = DateFormatter("%b '%y")
     # every monday
     mondays = WeekdayLocator(MONDAY)
@@ -73,10 +73,12 @@ def plot_list_vs_dates(x :List,y: List,xlabel :str,ylabel: str,title:str,legend_
     monthsFmt = DateFormatter("%b '%y")
     # every monday
     mondays = WeekdayLocator(MONDAY)
+    days = DayLocator(bymonthday=range(1, 30), interval=1)
 
     ax.xaxis.set_major_locator(months)
     ax.xaxis.set_major_formatter(monthsFmt)
     ax.xaxis.set_minor_locator(mondays)
+    # ax.xaxis.set_minor_locator(days)
     ax.autoscale_view()
 
     plt.xlabel(xlabel)

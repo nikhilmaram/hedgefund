@@ -2,6 +2,7 @@
 
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.stattools import grangercausalitytests
+from scipy.stats.stats import pearsonr
 from pandas.core import datetools
 import pandas as pd
 import numpy as np
@@ -15,6 +16,7 @@ import employee
 import sentiment
 import misc
 import config as cfg
+import plot
 
 
 def check_series_stationary(x:List):
@@ -41,7 +43,7 @@ def check_series_stationary(x:List):
         dfoutput['Critical Value (%s)' % key] = value
     print(dfoutput)
 
-def compute_causality(cause : List,effect : List,max_lag : int)-> dict:
+def compute_causality(cause : List,effect : List,max_lag : int=5)-> dict:
     """Computes if there is a causal relationship between cause and effect.
 
     Args:
@@ -67,6 +69,21 @@ def compute_causality(cause : List,effect : List,max_lag : int)-> dict:
 
     return causality_dict
     # print(granger_dict[1][0]["ssr_ftest"][1])
+
+
+def compute_correlation(list1 : List, list2 : List):
+    """Computes correlation between two lists.
+
+    Args:
+        list1 : first list.
+        list2 : Second list.
+
+    Returns:
+        None.
+    """
+    result = pearsonr(list1,list2)
+    print("Correlation Coefficient = {0}, p-value = {1}".format(result[0],result[1]))
+
 
 # ========================================================================================
 # ===========Performance vs sentiment causality functions=================================
@@ -179,6 +196,85 @@ def compute_relationships_book_list_performance_sentiment(book_list: List, start
 
 
     return book_list_causal_dict
+
+
+# ========================================================================================
+# ==========================hierarchy of sentiment========================================
+# ========================================================================================
+
+def compute_relationship_between_hierarchy_sentiment(src_dir_path,top_user,start_week:int = 75, end_week:int = 120,only_week:bool=False):
+    """Computes the relationship between sentiments at different levels of hierarchy.
+
+    Args:
+        src_dir_path : Directory which contains the message files.
+        top_user     : Top user for the hierarchy.
+        start_week   : start week.
+        end_week     : end week.
+        only_week    : data is calculated weekly instead of each date.
+
+    Returns:
+        None.
+
+    Plots sentiment of messages exchanged at different hierarchy.
+    Prints both correlation coefficient and causal relations.
+    """
+
+    level_subordinates_list = []
+    level_sentiment_dict_list = []
+
+    ## if the top_user is "ROOT" there will not be any messages from him/her to subordinates. As "ROOT" is a placeholder.
+
+    if top_user != "ROOT":
+        level_subordinates_list.append([top_user])
+    else:
+        level_subordinates_list.append(employee.employee_dict["ROOT"].immediate_subordinates)
+
+    prev_level_subordinate_list = level_subordinates_list[-1]
+
+    while(len(prev_level_subordinate_list) > 0 ):
+        curr_level_subordinate_list = []
+        for curr_member in prev_level_subordinate_list:
+            for subordinate in employee.employee_dict[curr_member].immediate_subordinates:
+                curr_level_subordinate_list.append(subordinate)
+        level_subordinates_list.append(curr_level_subordinate_list)
+        prev_level_subordinate_list = curr_level_subordinate_list
+
+
+    # num_levels_hierarchy = len(level_subordinates_list)-1 ## since the last level is empty.
+
+    ## Depending on number of levels to be considered.
+    num_levels_hierarchy = 4
+    print(num_levels_hierarchy)
+
+    for i in range(num_levels_hierarchy-1):
+        curr_level_sentiment_dict = sentiment.compute_between_sentiments_from_filelist_multiproc\
+            (src_dir_path ,level_subordinates_list[i],level_subordinates_list[i+1],num_process=4,
+             start_week=start_week,end_week=end_week,only_week=only_week)
+        level_sentiment_dict_list.append(curr_level_sentiment_dict)
+
+    dates_list = list(sorted(level_sentiment_dict_list[0].keys()))
+    sorted_level_sentiment_list = [[] for x in range(num_levels_hierarchy-1)]
+
+
+    for level_num in range(num_levels_hierarchy-1):
+        for date in dates_list:
+            sorted_level_sentiment_list[level_num].append(level_sentiment_dict_list[level_num][date])
+
+
+    legend_info = ["level - {0}".format(x+1) for x in range(num_levels_hierarchy-1)]
+    dates_list = [datetime.strptime(x, '%Y-%m-%d') for x in dates_list]
+
+    ## just considering 3 levels as the rest of the levels dont exchange messages so often.
+
+    plot.plot_list_of_lists_vs_dates(dates_list,sorted_level_sentiment_list[:num_levels_hierarchy],
+                                     xlabel= "Dates",ylabel = "sentiment of messages",title="Sentiment of messages between different hierarchies",
+                                     legend_info=legend_info[:num_levels_hierarchy])
+
+    for i in range(num_levels_hierarchy-2):
+        print("=========================level===========================")
+        compute_correlation(sorted_level_sentiment_list[i],sorted_level_sentiment_list[i+1])
+        causality_dict = compute_causality(sorted_level_sentiment_list[i], sorted_level_sentiment_list[i+1], max_lag=5)
+        misc.print_causality_dict(causality_dict)
 
 # ========================================================================================
 # ===============Performance vs kcore causality functions=================================
@@ -335,18 +431,19 @@ if __name__ == "__main__":
     # ===========================================================================================================
 
     # book_list = ["MENG"]
-    book_list = misc.read_book_file(cfg.BOOK_FILE)
-    book_list_causal_dict = compute_relationships_book_list_performance_sentiment(book_list, start_week=123,
-                                                                                  end_week=263,
-                                                                                  maximum_lag=10, only_week=False,
-                                                                                  complete_network=False,
-                                                                                  in_network=False)
 
-    misc.write_dict_in_file(book_list_causal_dict,
-                            cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl")
-    output_dict = misc.read_file_into_dict(
-        cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl")
-    print(output_dict)
+    # book_list = misc.read_book_file(cfg.BOOK_FILE)
+    # book_list_causal_dict = compute_relationships_book_list_performance_sentiment(book_list, start_week=123,
+    #                                                                               end_week=263,
+    #                                                                               maximum_lag=10, only_week=False,
+    #                                                                               complete_network=False,
+    #                                                                               in_network=False)
+    #
+    # misc.write_dict_in_file(book_list_causal_dict,
+    #                         cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl")
+    # output_dict = misc.read_file_into_dict(
+    #     cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl")
+    # print(output_dict)
 
     # for book, dict1 in book_list_causal_dict.items():
     #     for msg_type,dict2 in dict1.items():
@@ -354,5 +451,10 @@ if __name__ == "__main__":
     #             for lag, dict3 in dict2.items():
     #                 print(lag,dict3)
 
+    # ===========================================================================================================
+    # ==============================Computing sentiment hierarchy============================
+    # ===========================================================================================================
+
+    compute_relationship_between_hierarchy_sentiment(cfg.SENTIMENT_BUSINESS,"ROOT",start_week=125, end_week=180,only_week=False)
 
     pass
