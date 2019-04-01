@@ -102,4 +102,16 @@ if __name__ == "__main__":
     # analyse_causality(cfg.PKL_FILES + "/books_causal_effect_cause_sentiment_effect_performance_daily.pkl",
     #                   "within_dict", "ssr_ftest", "Within-Sentiment affect on Performance ")
 
+    # ========================================================================================
+    # =================== Analysis of Performance affect on sentiment(out-network) ===========
+    # ========================================================================================
+
+    # analyse_causality(cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl",
+    #                   "sent", "ssr_ftest", "Performance affect on Sent-Sentiment - Out-Network")
+
+    # analyse_causality(cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl",
+    #                   "recv", "ssr_ftest", "Performance affect on Receive-Sentiment - Out-Network")
+    #
+    # analyse_causality(cfg.PKL_FILES+"/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl",
+    #                   "within_dict","ssr_ftest", "Performance affect on Within-Sentiment - Out-Network")
     pass
