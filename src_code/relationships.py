@@ -276,6 +276,8 @@ def compute_relationship_between_hierarchy_sentiment(src_dir_path,top_user,start
         causality_dict = compute_causality(sorted_level_sentiment_list[i], sorted_level_sentiment_list[i+1], max_lag=5)
         misc.print_causality_dict(causality_dict)
 
+
+
 # ========================================================================================
 # ===============Performance vs kcore causality functions=================================
 # ========================================================================================
@@ -452,9 +454,11 @@ if __name__ == "__main__":
     #                 print(lag,dict3)
 
     # ===========================================================================================================
-    # ==============================Computing sentiment hierarchy============================
+    # ==============================Computing relationship between sentiment of different hierarchy==============
     # ===========================================================================================================
 
-    compute_relationship_between_hierarchy_sentiment(cfg.SENTIMENT_BUSINESS,"ROOT",start_week=125, end_week=180,only_week=False)
+    compute_relationship_between_hierarchy_sentiment(cfg.SENTIMENT_BUSINESS,"ROOT",start_week=125, end_week=160,only_week=False)
+
+
 
     pass
