@@ -226,8 +226,70 @@ def plot_message_graph(message_matrix, id_to_username_dict:dict,employee_dict:di
     A.draw(file_path)
 
 
+# ========================================================================================
+# ==================Plotting sentiment within same hierarchy==============================
+# ========================================================================================
+
+def plot_sentiment_within_hierarchy(src_dir_path,top_user,start_week:int = 75, end_week:int = 120,only_week:bool=False):
+    """Plots sentiments within same hierarchy level.
+
+    Args:
+        src_dir_path : Directory which contains the message files.
+        start_week   : start week.
+        end_week     : end week.
+        only_week    : data is calculated weekly instead of each date.
+
+    Returns:
+        None.
+    """
+
+    level_subordinates_list = []
+    level_sentiment_dict_list = []
+
+    level_subordinates_list.append(employee.employee_dict["ROOT"].immediate_subordinates)
+    prev_level_subordinate_list = level_subordinates_list[-1]
+
+    while(len(prev_level_subordinate_list) > 0 ):
+        curr_level_subordinate_list = []
+        for curr_member in prev_level_subordinate_list:
+            for subordinate in employee.employee_dict[curr_member].immediate_subordinates:
+                curr_level_subordinate_list.append(subordinate)
+        level_subordinates_list.append(curr_level_subordinate_list)
+        prev_level_subordinate_list = curr_level_subordinate_list
 
 
+    # num_levels_hierarchy = len(level_subordinates_list)-1 ## since the last level is empty.
+    ## Depending on number of levels to be considered.
+    num_levels_hierarchy = 4
+    print(num_levels_hierarchy)
+
+    for i in range(num_levels_hierarchy-1):
+        sent_sentiment_dict, receive_sentiment_dict, within_sentiment_dict = sentiment. \
+            compute_sentiments_from_filelist_multiproc(src_dir_path=src_dir_path,
+                                                       user_name_list=level_subordinates_list[i],
+                                                       num_process=4,in_network=False, complete_network=True,
+                                                       start_week=start_week, end_week=end_week, only_week=only_week)
+
+        # level_sentiment_dict_list.append(within_sentiment_dict)
+        level_sentiment_dict_list.append(sent_sentiment_dict)
+
+    dates_list = list(sorted(level_sentiment_dict_list[0].keys()))
+    sorted_level_sentiment_list = [[] for x in range(num_levels_hierarchy-1)]
+
+
+    for level_num in range(num_levels_hierarchy-1):
+        for date in dates_list:
+            sorted_level_sentiment_list[level_num].append(level_sentiment_dict_list[level_num][date])
+
+
+    legend_info = ["level - {0}".format(x+1) for x in range(num_levels_hierarchy-1)]
+    dates_list = [datetime.strptime(x, '%Y-%m-%d') for x in dates_list]
+
+    ## just considering 3 levels as the rest of the levels dont exchange messages so often.
+
+    plot_list_of_lists_vs_dates(dates_list,sorted_level_sentiment_list[:num_levels_hierarchy],
+                                     xlabel= "Dates",ylabel = "sentiment of messages",title="Sentiment of messages at same hierarchy",
+                                     legend_info=legend_info[:num_levels_hierarchy])
 
 
 
@@ -340,40 +402,41 @@ if __name__ == "__main__":
     # ==================================================================================
     # account_to_employee_dict, employee_to_account_dict = employee.map_employee_account(cfg.TRADER_BOOK_ACCOUNT_FILE)
     # subordinates_list = account_to_employee_dict["MENG"]
-    subordinates_list = employee.subordinates_given_employee(employee_dict, "carter_richard")
-    sent_sentiment_dict_outside, recv_sentiment_dict_outside, within_sentiment_dict_outside = \
-            sentiment.compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL, subordinates_list,
-                                                                 num_process=4,complete_network=False,in_network=False,
-                                                                 start_week=75,end_week=150,only_week=True)
-
-    sent_sentiment_dict_inside, recv_sentiment_dict_inside, within_sentiment_dict_inside = \
-        sentiment.compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL, subordinates_list,
-                                                             num_process=4, complete_network=False, in_network=True,
-                                                             start_week=75, end_week=150, only_week=True)
-
+    # # subordinates_list = employee.subordinates_given_employee(employee_dict, "carter_richard")
+    # sent_sentiment_dict_outside, recv_sentiment_dict_outside, within_sentiment_dict_outside = \
+    #         sentiment.compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL, subordinates_list,
+    #                                                              num_process=4,complete_network=False,in_network=False,
+    #                                                              start_week=75,end_week=150,only_week=False)
     #
-    dates_list = sorted(sent_sentiment_dict_outside.keys())
-    sent_sentiment_list_outside = [] ; recv_sentiment_list_outside = [] ; within_sentiment_list_outside = []
-    sent_sentiment_list_inside = [] ; recv_sentiment_list_inside = []; within_sentiment_list_inside = []
-    print(dates_list)
-    for curr_date in dates_list:
-        sent_sentiment_list_outside.append(sent_sentiment_dict_outside[curr_date])
-        recv_sentiment_list_outside.append(recv_sentiment_dict_outside[curr_date])
-        within_sentiment_list_outside.append(within_sentiment_dict_outside[curr_date])
-
-        sent_sentiment_list_inside.append(sent_sentiment_dict_inside[curr_date])
-        recv_sentiment_list_inside.append(recv_sentiment_dict_inside[curr_date])
-        within_sentiment_list_inside.append(within_sentiment_dict_inside[curr_date])
+    # sent_sentiment_dict_inside, recv_sentiment_dict_inside, within_sentiment_dict_inside = \
+    #     sentiment.compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL, subordinates_list,
+    #                                                          num_process=4, complete_network=False, in_network=True,
+    #                                                          start_week=75, end_week=150, only_week=False)
     #
-    dates_list = [datetime.strptime(x, '%Y-%m-%d') for x in dates_list]
+    # #
+    # dates_list = sorted(sent_sentiment_dict_outside.keys())
+    # sent_sentiment_list_outside = [] ; recv_sentiment_list_outside = [] ; within_sentiment_list_outside = []
+    # sent_sentiment_list_inside = [] ; recv_sentiment_list_inside = []; within_sentiment_list_inside = []
+    # print(dates_list)
+    # for curr_date in dates_list:
+    #     sent_sentiment_list_outside.append(sent_sentiment_dict_outside[curr_date])
+    #     recv_sentiment_list_outside.append(recv_sentiment_dict_outside[curr_date])
+    #     within_sentiment_list_outside.append(within_sentiment_dict_outside[curr_date])
     #
-    # y_list = [sent_sentiment_list_outside, sent_sentiment_list_inside]
-    # legend_info = ["sent-sentiment-outside", "sent-sentiment-inside"]
-
-    y_list = [recv_sentiment_list_outside, recv_sentiment_list_inside]
-    legend_info = ["receive-sentiment-outside", "receive-sentiment-inside"]
+    #     sent_sentiment_list_inside.append(sent_sentiment_dict_inside[curr_date])
+    #     recv_sentiment_list_inside.append(recv_sentiment_dict_inside[curr_date])
+    #     within_sentiment_list_inside.append(within_sentiment_dict_inside[curr_date])
+    # #
+    # dates_list = [datetime.strptime(x, '%Y-%m-%d') for x in dates_list]
+    # #
+    # # y_list = [sent_sentiment_list_outside, sent_sentiment_list_inside]
+    # # legend_info = ["sent-sentiment-outside", "sent-sentiment-inside"]
     #
-    plot_list_of_lists_vs_dates(dates_list, y_list, "Dates", "Sentiment", "Sentiment vs Dates", legend_info)
+    # y_list = [recv_sentiment_list_outside, recv_sentiment_list_inside]
+    # legend_info = ["receive-sentiment-outside", "receive-sentiment-inside"]
+    # #
+    # plot_list_of_lists_vs_dates(dates_list, y_list, "Dates", "Sentiment", "Sentiment vs Dates", legend_info)
+    # relationships.compute_correlation(recv_sentiment_list_inside,recv_sentiment_list_outside)
 
     # =========================================================================
     # ====================Plotting Message graph ==============================
@@ -383,7 +446,12 @@ if __name__ == "__main__":
     # message_matrix, message_adj_list, id_to_username_dict = network.create_matrix(cfg.SENTIMENT_PERSONAL+"im_df_week150.csv")
     # plot_message_graph(message_matrix,id_to_username_dict,employee_dict,cfg.PLOTS_DIR+"/message_graph_week150.png",subordinates_list,1)
 
+    # ===========================================================================================================
+    # ==============================Computing relationship between sentiment same  hierarchy==============
+    # ===========================================================================================================
 
+    plot_sentiment_within_hierarchy(cfg.SENTIMENT_PERSONAL, "ROOT", start_week=125, end_week=160,
+                                                    only_week=True)
 
 
     pass
