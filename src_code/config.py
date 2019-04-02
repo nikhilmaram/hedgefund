@@ -20,7 +20,7 @@ ADDRESS_LINK_FILE           = USER_DATA_DIR + "/Address_linkfile.txt"
 PERFORMANCE_FILE            = USER_DATA_DIR + "/PnL_final.csv"
 TRADER_BOOK_ACCOUNT_FILE    = USER_DATA_DIR + "/Trader_Book_Account.xlsx"
 BOOK_FILE                   = USER_DATA_DIR + "/book.csv"
-
+LIWC_DICTIONARY             = USER_DATA_DIR + "/LIWC2015_English.dic"
 
 #############################################################
 ### GENERATED DATA FILES
