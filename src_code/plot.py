@@ -330,10 +330,10 @@ if __name__ == "__main__":
     # ====================Plotting performance of the book/booklist.===========
     # =========================================================================
 
-    # dates_list, performance_list = performance.performance_given_book(cfg.PERFORMANCE_FILE, "MENG", start_week=123,
-    #                                                                   end_week=350, only_week=True)
-    # plot_list_vs_dates(dates_list, performance_list, xlabel="Dates", ylabel="Performance", title="Performance of Book",
-    #                    legend_info="MENG")
+    dates_list, performance_list = performance.performance_given_book(cfg.PERFORMANCE_FILE, "MENG", start_week=123,
+                                                                      end_week=160, only_week=True)
+    plot_list_vs_dates(dates_list, performance_list, xlabel="Dates", ylabel="Performance", title="Performance of Book",
+                       legend_info="MENG")
 
     # book_list = misc.read_book_file(cfg.BOOK_FILE)
     # dates_dict, performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,book_list,0,300)
@@ -450,8 +450,8 @@ if __name__ == "__main__":
     # ==============================Computing relationship between sentiment same  hierarchy==============
     # ===========================================================================================================
 
-    plot_sentiment_within_hierarchy(cfg.SENTIMENT_PERSONAL, "ROOT", start_week=125, end_week=160,
-                                                    only_week=True)
+    # plot_sentiment_within_hierarchy(cfg.SENTIMENT_PERSONAL, "ROOT", start_week=125, end_week=160,
+    #                                                 only_week=True)
 
 
     pass
