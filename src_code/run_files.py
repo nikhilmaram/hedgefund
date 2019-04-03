@@ -26,7 +26,9 @@ if __name__ == "__main__":
     # processing_all_files.modify_im_dfs_filelist_multiprocess(business_sentiment_src_dir,cfg.SENTIMENT_BUSINESS,16)
     # processing_all_files.modify_im_dfs_filelist_multiprocess(personal_sentiment_src_dir, cfg.SENTIMENT_PERSONAL, 8)
 
+    # =========================================================================
     # Computing K-core values from the business and personal files.
+    # =========================================================================s
 
     # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_PERSONAL,cfg.KCORE_PERSONAL,8)
     # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_BUSINESS, cfg.KCORE_BUSINESS, 8)
