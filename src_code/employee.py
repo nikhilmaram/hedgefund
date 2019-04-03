@@ -339,7 +339,7 @@ def subordinates_given_employee(employee_dict:dict, inp_employee_name:str) -> Li
 # =========================================================================
 
 def books_given_employee_list(inp_employee_list : List) -> List:
-    """Given a list of users, returns the list of users associated with them.
+    """Given a list of users, returns the list of books associated with them.
 
     Args:
         inp_employee_list : Input Employee List.
@@ -357,6 +357,28 @@ def books_given_employee_list(inp_employee_list : List) -> List:
     book_list = sorted(list(book_set))
     return book_list
 
+# =========================================================================
+# ==================== Employees given Book List===========================
+# =========================================================================
+
+def employees_given_book_list(inp_book_list : List) -> List:
+    """Given a list of books, returns the list of employees associated with them.
+
+    Args:
+        inp_book_list : Input Book List.
+
+    Returns:
+        emp_list : Employees associated with books
+
+    """
+    employee_set = set()
+    for book_name in inp_book_list:
+        if book_name in account_to_employee_dict.keys():
+            for employee in account_to_employee_dict[book_name]:
+                employee_set.add(employee)
+
+    emp_list = sorted(list(employee_set))
+    return emp_list
 
 
 # =========================================================================
