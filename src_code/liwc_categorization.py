@@ -4,6 +4,7 @@ from typing import List
 from typing import Tuple
 import os
 import multiprocessing
+import time
 
 import config as cfg
 import misc
@@ -12,7 +13,7 @@ import employee
 CAT_DELIM = "%"
 
 
-
+pd.set_option('display.max_colwidth', -1)
 # =========================================================================
 # ============= Generating LIWC parser ====================================
 # =========================================================================
@@ -193,7 +194,6 @@ def compute_required_categories_from_text(text : str) -> dict:
     category_dict["certainity"] = counter_dict.get("certain", 0)
     category_dict["discrepancy"] = counter_dict.get("discrep", 0)
     category_dict["tentativeness"] = counter_dict.get("tentat", 0)
-    category_dict["certainity"] = counter_dict.get("certain", 0)
     category_dict["differentiation"] = counter_dict.get("differ", 0) ## same as exlcusion.
 
     category_dict["affect_process"] = counter_dict.get("affect", 0)
@@ -305,11 +305,13 @@ def compute_liwc_user_list_messages(im_df: pd.DataFrame, user_name_list: List, c
     recv_messages = " ".join(recv_message_list)
     within_messages = " ".join(within_message_list)
 
+    start_time  = time.time()
     sent_messages_category_dict = compute_required_categories_from_text(sent_messages)
     recv_messages_category_dict = compute_required_categories_from_text(recv_messages)
     within_messages_category_dict = compute_required_categories_from_text(within_messages)
+    # print("Time elapsed for computing all category dicts : {0}".format(time.time()-start_time))
 
-
+    del [im_df_sent, im_df_recv, im_df_within]
 
     return sent_messages_category_dict, recv_messages_category_dict, within_messages_category_dict
 
@@ -437,7 +439,7 @@ if __name__ == "__main__":
     employee_list = employee.employees_given_book_list(book_list)
     total_sent_category_dict, total_recv_category_dict, total_within_category_dict = \
         compute_liwc_categories_from_filelist_multiproc(cfg.SENTIMENT_BUSINESS,employee_list,1,complete_network=False,in_network=True,
-                                                        start_week=125, end_week=140,only_week=True)
+                                                        start_week=127, end_week=127,only_week=True)
 
 
     print(total_sent_category_dict)

@@ -16,6 +16,9 @@ import misc
 
 performance_mean_dict_book = misc.read_file_into_dict(cfg.PKL_FILES+"/performance_mean.pkl")
 
+# =========================================================================
+# ==================== Performance given MTD values===========================
+# =========================================================================
 def calulate_performance_from_mtd_values(df : pd.DataFrame,book:str) -> Tuple[List,List]:
     """Calculates the performance value given mtd values by subtracting the last day of previous month.
 
@@ -57,16 +60,18 @@ def calulate_performance_from_mtd_values(df : pd.DataFrame,book:str) -> Tuple[Li
 
     # ## if cumulative sum is needed for performance
     # performance_list = df["cumulative"].tolist()
-    # ## if difference is needed for performance.
-    # performance_list = [(float(performance_list[i + 1]) - float(performance_list[i])) / (float(performance_list[i]) + 1) for i in
-    #                range(len(performance_list) - 1)]
+    ## if difference is needed for performance.
+    # performance_list = [(float(performance_list[i]) - float(performance_list[i-1])) / (float(performance_list[i-1]) ) for i in
+    #                range(1,len(performance_list))]
     # performance_list.insert(0, 0)
 
 
     return dates_list,performance_list
 
 
-
+# =========================================================================
+# ==================== Performance given book===========================
+# =========================================================================
 def performance_given_book(file_path : str, book:str,start_week : int = 0, end_week : int = 300,only_week:bool=False) -> Tuple[List,List]:
     """Calculates the performance of given book over given weeks.
 
@@ -109,6 +114,10 @@ def performance_given_book(file_path : str, book:str,start_week : int = 0, end_w
     dates_list, performance_list = calulate_performance_from_mtd_values(df,book)
     return dates_list, performance_list
 
+# =========================================================================
+# ==================== Performance given book list===========================
+# =========================================================================
+
 def performance_given_book_list(file_path:str, book_list:List,start_week : int = 0, end_week : int = 300,only_week:bool=False) -> Tuple[dict,dict]:
     """Calculates the performance given book list.
 
@@ -135,6 +144,10 @@ def performance_given_book_list(file_path:str, book_list:List,start_week : int =
 
     return dates_dict,performance_dict
 
+
+# ================================================================================================
+# ==================== Combine performance of multiple book performances==========================
+# ================================================================================================
 def combine_performance_given_book_list(dates_dict : dict, performance_dict :dict, only_week:bool=False) -> dict:
     """ Combines performance of multiple books into a single value for a week.
 
@@ -182,7 +195,9 @@ def combine_performance_given_book_list(dates_dict : dict, performance_dict :dic
     total_date_performance_dict =  dict(zip(total_dates_list,total_performance_list))
     return total_date_performance_dict
 
-
+# ================================================================================================
+# ==================== Precompute performance mean of the books. ==========================
+# ================================================================================================
 def precompute_performance_mean_of_books():
     """Pre-computes performance mean of books.
 
@@ -202,6 +217,11 @@ def precompute_performance_mean_of_books():
 
     print(performance_mean_dict)
     misc.write_dict_in_file(performance_mean_dict,cfg.PKL_FILES+"/performance_mean.pkl")
+
+
+# ================================================================================================
+# ==================== Precompute performance of the books weekly. ==========================
+# ================================================================================================
 
 def precompute_performance_of_books_weekly():
     """Pre-computes performance of all books weekly.

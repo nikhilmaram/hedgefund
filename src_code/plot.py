@@ -9,6 +9,8 @@ import networkx as nx
 from networkx.drawing.nx_agraph import write_dot, graphviz_layout
 import queue
 import random
+import numpy as np
+import math
 
 import network
 import employee
@@ -17,6 +19,7 @@ import performance
 import sentiment
 import misc
 import relationships
+import liwc_categorization as liwc
 
 
 
@@ -81,6 +84,26 @@ def plot_list_vs_dates(x :List,y: List,xlabel :str,ylabel: str,title:str,legend_
     # ax.xaxis.set_minor_locator(days)
     ax.autoscale_view()
 
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.legend()
+    plt.show()
+
+
+def general_plot(x:List, y:List,xlabel:str="",ylabel:str="",title:str="",legend=""):
+    """General plot.
+
+    Args:
+        x : x- variable.
+        y : y_variable.
+        xlabel : label for x-axis .
+        ylabel : label for y-axis.
+        title  : title for the plot.
+        lengend_info : legend for the plot.
+    """
+
+    plt.plot(x,y,label = legend)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
@@ -293,6 +316,94 @@ def plot_sentiment_within_hierarchy(src_dir_path,top_user,start_week:int = 75, e
 
 
 
+# ========================================================================================
+# ==========================Plots Performance vs LIWC========================================
+# ========================================================================================
+def plot_relationship_between_performance_dict_category_dict(performance_date_dict:dict, category_date_dict: dict):
+    """Plots relationship between performance and category dict.
+
+    Args:
+        performance_date_dict : Performance date dictionary.
+        category_date_dict    : Category date dictionary.
+    """
+
+    category_date_dict = misc.change_key_string_key_date(category_date_dict)
+    performance_date_dict_common, category_date_dict_common = misc.common_keys(performance_date_dict,category_date_dict)
+    performance_list, category_dict_list = misc.get_list_from_dicts_sorted_dates(performance_date_dict_common,category_date_dict_common)
+    liwc_value_list = [x["anger"] for x in category_dict_list]
+
+    liwc_value_list = [x for _, x in sorted(zip(performance_list, liwc_value_list), key=lambda pair: pair[0])]
+
+    performance_list = sorted(performance_list)
+    # general_plot(performance_list, liwc_value_list)
+
+    print(liwc_value_list)
+    print(performance_list)
+    ## Flooring the performance values and getting the mean of liwc values corresponding to the floored performance value.
+
+    performance_list = [math.floor(x) for x in performance_list]
+    updated_performance_list = sorted(list(set(performance_list)))
+    updated_liwc_value_list = []
+
+    for x in updated_performance_list:
+        accumulated_liwc = 0.0 ; count = 0.0
+        for i in range(len(performance_list)):
+            if (performance_list[i] == x):
+                accumulated_liwc = accumulated_liwc + liwc_value_list[i]
+                count = count + 1
+        updated_liwc_value_list.append(accumulated_liwc/count)
+
+    ## Remove zeros
+    performance_list = updated_performance_list
+    liwc_value_list  = updated_liwc_value_list
+    updated_performance_list = []
+    updated_liwc_value_list  = []
+
+    for i in range(len(performance_list)):
+        if(liwc_value_list[i] != 0):
+            updated_liwc_value_list.append(liwc_value_list[i])
+            updated_performance_list.append(performance_list[i])
+
+    print(updated_liwc_value_list)
+    print(updated_performance_list)
+
+
+    general_plot(updated_performance_list, updated_liwc_value_list,xlabel="Performance",ylabel="Percentage of words", title="Anger")
+
+
+
+def plot_relationship_performance_liwc(src_dir_path: str,inp_book_list:List, complete_network: bool = False,
+                                          in_network:bool = True,start_week : int = 123,end_week : int=150,only_week:bool= False):
+    """Plots relationship between performance and LIWC.
+
+    Args:
+        src_dir_path        : Directory path to IM files.
+        inp_book_list       : List of Input Book.
+        complete_network    : complete network to be considered (True: complete network, False: network depending on in_network).
+        in_network          : messages considered within/outside network.
+        start_week          : start week.
+        end_week            : end week.
+        only_week           : data is calculated weekly instead of each date.
+
+    Returns:
+        None
+
+    """
+    inp_employee_list = employee.employees_given_book_list(inp_book_list)
+
+    total_sent_category_dict, total_recv_category_dict, total_within_category_dict = \
+        liwc.compute_liwc_categories_from_filelist_multiproc(src_dir_path,inp_employee_list,1,
+                                                             complete_network=complete_network,in_network=in_network,
+                                                             start_week=start_week,end_week=end_week,only_week=only_week)
+
+    dates_dict, performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,inp_book_list,
+                                                                           start_week=start_week,
+                                                                           end_week=end_week, only_week=only_week)
+    performance_date_dict = performance.combine_performance_given_book_list(dates_dict, performance_dict,
+                                                                            only_week=only_week)
+
+    plot_relationship_between_performance_dict_category_dict(performance_date_dict,total_recv_category_dict)
+
 
 if __name__ == "__main__":
 
@@ -330,10 +441,11 @@ if __name__ == "__main__":
     # ====================Plotting performance of the book/booklist.===========
     # =========================================================================
 
-    dates_list, performance_list = performance.performance_given_book(cfg.PERFORMANCE_FILE, "MENG", start_week=123,
-                                                                      end_week=160, only_week=True)
-    plot_list_vs_dates(dates_list, performance_list, xlabel="Dates", ylabel="Performance", title="Performance of Book",
-                       legend_info="MENG")
+    # book_name = "AFEI"
+    # dates_list, performance_list = performance.performance_given_book(cfg.PERFORMANCE_FILE, book_name, start_week=123,
+    #                                                                   end_week=263, only_week=False)
+    # plot_list_vs_dates(dates_list, performance_list, xlabel="Dates", ylabel="Performance", title="Performance of Book",
+    #                    legend_info=book_name)
 
     # book_list = misc.read_book_file(cfg.BOOK_FILE)
     # dates_dict, performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,book_list,0,300)
@@ -453,5 +565,11 @@ if __name__ == "__main__":
     # plot_sentiment_within_hierarchy(cfg.SENTIMENT_PERSONAL, "ROOT", start_week=125, end_week=160,
     #                                                 only_week=True)
 
+    # ===========================================================================================================
+    # ==============================Plotting Performance and LIWC ==============
+    # ===========================================================================================================
+
+    plot_relationship_performance_liwc(cfg.SENTIMENT_PERSONAL,["ADAM"],complete_network=False,in_network=True, start_week=123,
+                                       end_week=200, only_week=False)
 
     pass

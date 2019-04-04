@@ -2,6 +2,8 @@ import numpy as np
 import networkx as nx
 from sklearn.cluster import KMeans
 from employee import employee_id_to_username_from_file
+from typing import List
+from typing import Tuple
 
 def interactions_clustering(message_matrix: np.ndarray, num_cluster: int, file_path: str) -> Tuple[np.ndarray,dict]:
     """
@@ -14,7 +16,7 @@ def interactions_clustering(message_matrix: np.ndarray, num_cluster: int, file_p
     embeddings: the embeddings of each employee in eigenspace
     all_cluster_username_dict: Key: cluster id, Value : list of employees' names: last_name + "_" + first_name
     """
-    message_matrix1 = message_matrix[1:message_matrix.shape[0], :]
+    message_matrix1 = message_matrix[1:, 1:]
     message_matrix1 = message_matrix1 + message_matrix1.T
     G = nx.Graph()
     for src in range(len(message_matrix1)):
