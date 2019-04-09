@@ -24,11 +24,11 @@ employee_id_to_username_dict,employee_username_to_id_dict = employee.employee_id
 # ==================== Creating Graph and K-Core===========================
 # =========================================================================
 
-def create_matrix(file_path : str, in_network: bool = True) -> Tuple[np.ndarray,List[set],dict]:
+def create_matrix(im_df : pd.DataFrame, in_network: bool = True) -> Tuple[np.ndarray,List[set],dict]:
     """ Creates Adjacency Matrix and Adjacency lists by reading the IM Data file.
 
     Args:
-        file_path : IM file path.
+        im_df : IM dataframe.
         in_network : Boolean Variable determines whether the graph should be built within the hedgefund network. (True : In , False: All)
 
     Returns:
@@ -40,7 +40,7 @@ def create_matrix(file_path : str, in_network: bool = True) -> Tuple[np.ndarray,
     297 Employees are present in the hedgefund. A row is assigned to them, irrespective of employee being in the message file of the week.
     """
 
-    im_df = pd.read_csv(file_path)
+
 
     ## start with in_network users
     id_to_username_dict = employee_id_to_username_dict
@@ -87,16 +87,28 @@ def create_graph(message_matrix, un_directed:bool = True, weight_threshold=1) ->
 
     We use create_matrix to get the matrix and adjacent list.
     """
+    len_matrix = len(message_matrix)
 
-    G = nx.DiGraph()
+    if un_directed:
+        G = nx.Graph()
+        G.add_nodes_from(range(0,len_matrix+1))
+        message_matrix1 = np.zeros((len(message_matrix), len(message_matrix)))
+        for i in range(len(message_matrix)):
+            for j in range(i + 1, len(message_matrix)):
+                message_matrix1[i][j] = message_matrix[i][j] + message_matrix[j][i]
+                message_matrix1[j][i] = message_matrix1[i][j]
+        message_matrix = message_matrix1
+
+    else:
+        G = nx.DiGraph()
+        G.add_nodes_from(range(0, len_matrix + 1))
 
     for src in range(len(message_matrix)):
         for dest in range(len(message_matrix)):
-            if(message_matrix[src][dest] >= weight_threshold):
-                G.add_edge(src, dest,weight = message_matrix[src][dest])
+            if (message_matrix[src][dest] >= weight_threshold):
+                G.add_edge(src, dest, weight=message_matrix[src][dest])
 
-    if un_directed:
-        G = G.to_undirected()
+
     G.remove_edges_from(nx.selfloop_edges(G))
     return G
 
