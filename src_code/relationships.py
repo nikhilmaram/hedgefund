@@ -17,6 +17,7 @@ import sentiment
 import misc
 import config as cfg
 import plot
+import interactions
 
 
 def check_series_stationary(x:List):
@@ -388,6 +389,66 @@ def compute_relationships_performance_kcore(src_dir_path: str, start_week : int,
     return kcore_performance_dict,kcore_num_nodes_dict,causal_performance_kcore_dict
 
 
+# ========================================================================================
+# =============== Performance vs distance between networks================================
+# ========================================================================================
+def compute_relationship_performance_distance_between_networks(business_dir_path:str, social_dir_path:str, user_name_list:List,k : int,
+                                                               start_week:int, end_week:int,in_network:bool = True,only_week:bool = True, max_lag = 10):
+    """Computes relationship between performance and distance between networks.
+
+    Args:
+        business_dir_path   : Business messages directory path.
+        social_dir_path     : Social messages directory path.
+        user_name_list      : Users for which the distance is calculated.
+        k                   : Number of embeddings to be considered.
+        start_week          : Start week.
+        end_week            : End week.
+        in_network          : Only users in the network considered. (True : IN, False: All)
+        only_week           : Only week data is considered.
+        max_lag             : Maximum lag to be considered.
+
+    """
+    users_performance_dict = {}
+    performance_week_dict = misc.read_file_into_dict(cfg.PKL_FILES + "/performance_weekly.pkl")
+    distance_dict = interactions.compute_distance_between_business_and_social_embedding(business_dir_path,social_dir_path,user_name_list,
+                                                                                        k,start_week,end_week,in_network,only_week)
+
+    distance_dict = misc.change_key_string_key_date(distance_dict)
+    book_list = employee.books_given_employee_list(user_name_list)
+
+    for week_num in range(start_week, end_week + 1):
+        curr_week_performance_list = []
+        for book in book_list:
+            performance_week_dict_book = performance_week_dict.get(book, {})
+            curr_week_book_performance = performance_week_dict_book.get(week_num, 0)
+            curr_week_performance_list.append(curr_week_book_performance)
+
+        if len(curr_week_performance_list) > 0:
+            curr_week_performance = sum(curr_week_performance_list) / len(curr_week_performance_list)
+            if(curr_week_performance != 0):
+                users_performance_dict[misc.calculate_datetime(week_num=week_num)] = curr_week_performance
+
+    distance_dict, users_performance_dict = misc.common_keys(distance_dict, users_performance_dict)
+
+    distance_list, users_performance_list = misc.get_list_from_dicts_sorted_dates(distance_dict, users_performance_dict)
+
+    ## need the inverse of the user performance list since closer the network higher the performance.
+    users_performance_list = [1/x for x in users_performance_list]
+
+    causal_performance_distance_dict = compute_causality(distance_list, users_performance_list, max_lag)
+
+    misc.print_causality_dict(causal_performance_distance_dict)
+
+    dates_list = sorted(list(distance_dict.keys()))
+
+    plot.plot_list_vs_dates(dates_list,users_performance_list, "Time", "Inverse of user performance","Inverse of User Performance list Vs Time", "ALL")
+    plot.plot_list_vs_dates(dates_list, distance_list, "Time", "Distance Between Social and Business Network", "Distance Between Social and Business Network Vs Time", "ALL")
+
+    compute_correlation(users_performance_list, distance_list)
+
+
+
+
 if __name__ == "__main__":
 
     # # ========================================================================================
@@ -457,8 +518,15 @@ if __name__ == "__main__":
     # ==============================Computing relationship between sentiment of different hierarchy==============
     # ===========================================================================================================
 
-    compute_relationship_between_hierarchy_sentiment(cfg.SENTIMENT_BUSINESS,"ROOT",start_week=125, end_week=160,only_week=False)
+    # compute_relationship_between_hierarchy_sentiment(cfg.SENTIMENT_BUSINESS,"ROOT",start_week=125, end_week=160,only_week=False)
 
+    # ===========================================================================================================
+    # ==============================Computing relationship between performance and distance between networks=====
+    # ===========================================================================================================
+
+
+    compute_relationship_performance_distance_between_networks(cfg.SENTIMENT_BUSINESS, cfg.SENTIMENT_PERSONAL, employee.employee_list,
+                                                               20, 125, 160, True, True, 10)
 
 
     pass
