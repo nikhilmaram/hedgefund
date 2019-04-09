@@ -107,7 +107,8 @@ def compute_kcore_values_filelist(file_list:List[str], src_dir_path:str, dst_dir
             week_num = file_name.split('.')[0][10:]
             ## input file_path
             file_path = os.path.join(src_dir_path, file_name)
-            message_matrix, _ ,_ = network.create_matrix(file_path,in_network=in_network)
+            im_df = pd.read_csv(file_path)
+            message_matrix, _ ,_ = network.create_matrix(im_df,in_network=in_network)
             G = network.create_graph(message_matrix)
             kcore_number_list, kcore_num_of_nodes_list, kcore_num_components_list, \
             kcore_largest_cc_num_nodes_list, kcore_largest_cc_nodes_list= network.compute_kcore_values_list(G,25)
