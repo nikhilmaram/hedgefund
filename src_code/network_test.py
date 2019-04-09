@@ -47,13 +47,15 @@ class NetworkModuleTest(unittest.TestCase):
         expected_message_matrix[2][298] = 1 ; expected_message_matrix[299][298] = 1 ; expected_message_matrix[2][289] = 1
         expected_message_adj_list[2].add(289) ; expected_message_adj_list[2].add(298) ; expected_message_adj_list[299].add(298)
 
-        observed_message_matrix, observed_message_adj_list,_ = network.create_matrix(file_path,False)
+        im_df = pd.read_csv(file_path)
+        observed_message_matrix, observed_message_adj_list,_ = network.create_matrix(im_df,False)
         self.assertEqual(observed_message_adj_list,expected_message_adj_list)
         self.assertEqual(observed_message_matrix.all(),expected_message_matrix.all())
 
         ### Only using inside hedgefund employees
         user_count = cfg.TOTAL_EMPLOYEES
-        observed_message_matrix, observed_message_adj_list, _ = network.create_matrix(file_path, True)
+        im_df = pd.read_csv(file_path)
+        observed_message_matrix, observed_message_adj_list, _ = network.create_matrix(im_df, True)
         expected_message_matrix = np.zeros((user_count + 1, user_count + 1))
         expected_message_adj_list = [set() for _ in range(user_count + 1)]
         expected_message_matrix[2][289] = 1
@@ -71,7 +73,8 @@ class NetworkModuleTest(unittest.TestCase):
         ### Only using inside hedgefund employees
         expected_graph.add_edge(64, 242, weight=1.0); expected_graph.add_edge(242, 64, weight=2.0)
         expected_graph.add_edge(280, 242, weight = 1.0)
-        message_matrix,_,_ = network.create_matrix(cfg.IM_TEST_FILE,in_network=True)
+        im_df = pd.read_csv(cfg.IM_TEST_FILE)
+        message_matrix,_,_ = network.create_matrix(im_df,in_network=True)
         observed_graph = network.create_graph(message_matrix,un_directed=False)
         self.assertEqual(nx.is_isomorphic(observed_graph, expected_graph), True)
 
@@ -80,14 +83,16 @@ class NetworkModuleTest(unittest.TestCase):
         expected_graph.add_edge(280, 302, weight=3.0); expected_graph.add_edge(302,280, weight =1.0)
         expected_graph.add_edge(300,234,weight=1.0)
 
-        message_matrix, _, _ = network.create_matrix(cfg.IM_TEST_FILE, in_network=False)
+        im_df = pd.read_csv(cfg.IM_TEST_FILE)
+        message_matrix, _, _ = network.create_matrix(im_df, in_network=False)
         observed_graph = network.create_graph(message_matrix, un_directed=False)
         self.assertEqual(nx.is_isomorphic(observed_graph, expected_graph), True)
 
         ## Check for undirected graph.
 
         expected_graph = expected_graph.to_undirected()
-        message_matrix, _, _ = network.create_matrix(cfg.IM_TEST_FILE, in_network=False)
+        im_df = pd.read_csv(cfg.IM_TEST_FILE)
+        message_matrix, _, _ = network.create_matrix(im_df, in_network=False)
         observed_graph = network.create_graph(message_matrix, un_directed=True)
         self.assertEqual(nx.is_isomorphic(observed_graph, expected_graph), True)
 
