@@ -1,6 +1,7 @@
 """This file contains functions that are used to analyze output of computation functions."""
 import matplotlib.pyplot as plt
 import seaborn as sb
+import numpy as np
 
 import misc
 import config as cfg
@@ -63,11 +64,13 @@ def analyse_causality(pkl_file_name :str,inp_msg_type : str, ftest_type : str ="
 
         if(min_p_value != 10):
             min_pvalue_each_book.append(min_p_value)
-
-
-    sb.distplot(min_pvalue_each_book)
-    plt.xlabel("Minimum p-value for each book")
-    plt.title("Minimum p-value distribution for each book - {0}".format(extra_label))
+    bin_list = list(np.arange(0,1,0.1))
+    print(len(min_pvalue_each_book))
+    # sb.distplot(min_pvalue_each_book,norm_hist=True,bins=bin_list)
+    plt.hist(min_pvalue_each_book, bins=bin_list)
+    plt.xlabel("Minimum p-value for book")
+    plt.ylabel("Number of books")
+    plt.title("Minimum p-value distribution for books - {0}".format(extra_label))
     plt.show()
 
     print(lag_pvalues_dict)
@@ -81,13 +84,13 @@ if __name__ == "__main__":
     # ========================================================================================
 
     # analyse_causality(cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily.pkl",
-    #                   "sent", "ssr_ftest", "Performance affect on Sent-Sentiment ")
-
-    # analyse_causality(cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily.pkl",
-    #                   "recv", "ssr_ftest", "Performance affect on Receive-Sentiment")
+    #                   "sent", "ssr_chi2test", "Performance affect on Sent-Sentiment ")
     #
+    # analyse_causality(cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily.pkl",
+    #                   "recv", "ssr_chi2test", "Performance affect on Receive-Sentiment")
+    # #
     # analyse_causality(cfg.PKL_FILES+"/books_causal_effect_cause_performance_effect_sentiment_daily.pkl",
-    #                   "within_dict","ssr_ftest", "Performance affect on Within-Sentiment")
+    #                   "within_dict","ssr_chi2test", "Performance affect on Within-Sentiment")
 
     # ========================================================================================
     # =================== Analysis of Sentiment affect on Performance ========================
@@ -107,11 +110,11 @@ if __name__ == "__main__":
     # ========================================================================================
 
     # analyse_causality(cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl",
-    #                   "sent", "ssr_ftest", "Performance affect on Sent-Sentiment - Out-Network")
-
+    #                   "sent", "ssr_chi2test", "Performance affect on Sent-Sentiment - Out-Network")
+    #
     # analyse_causality(cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl",
-    #                   "recv", "ssr_ftest", "Performance affect on Receive-Sentiment - Out-Network")
+    #                   "recv", "ssr_chi2test", "Performance affect on Receive-Sentiment - Out-Network")
     #
     # analyse_causality(cfg.PKL_FILES+"/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl",
-    #                   "within_dict","ssr_ftest", "Performance affect on Within-Sentiment - Out-Network")
+    #                   "within_dict","ssr_chi2test", "Performance affect on Within-Sentiment - Out-Network")
     pass
