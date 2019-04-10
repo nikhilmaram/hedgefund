@@ -91,7 +91,7 @@ def create_graph(message_matrix, un_directed:bool = True, weight_threshold=1) ->
 
     if un_directed:
         G = nx.Graph()
-        G.add_nodes_from(range(0,len_matrix+1))
+        G.add_nodes_from(range(1,len_matrix))
         message_matrix1 = np.zeros((len(message_matrix), len(message_matrix)))
         for i in range(len(message_matrix)):
             for j in range(i + 1, len(message_matrix)):
@@ -101,7 +101,7 @@ def create_graph(message_matrix, un_directed:bool = True, weight_threshold=1) ->
 
     else:
         G = nx.DiGraph()
-        G.add_nodes_from(range(0, len_matrix + 1))
+        G.add_nodes_from(range(1, len_matrix))
 
     for src in range(len(message_matrix)):
         for dest in range(len(message_matrix)):
