@@ -3,6 +3,7 @@
 from typing import List
 from typing import Tuple
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from matplotlib.dates import MonthLocator, WeekdayLocator, DateFormatter,DayLocator,MONDAY
 from datetime import  datetime,timedelta,date
 import networkx as nx
@@ -40,7 +41,7 @@ def plot_list_of_lists_vs_dates(x :List,y_list : List[List],xlabel :str = "",yla
         # plt.plot(x, y_list[i],'-o', label='%d-core' % (i+1))
         ax.plot_date(x, y_list[i], '-o', label=legend_info[i])
 
-    months = MonthLocator(range(1, 13), bymonthday=1, interval=1)
+    months = MonthLocator(range(1, 13), bymonthday=1, interval=2)
     monthsFmt = DateFormatter("%b '%y")
     # every monday
     mondays = WeekdayLocator(MONDAY)
@@ -50,6 +51,7 @@ def plot_list_of_lists_vs_dates(x :List,y_list : List[List],xlabel :str = "",yla
     ax.xaxis.set_minor_locator(mondays)
     ax.autoscale_view()
 
+    mpl.rcParams["legend.loc"] = 'upper left'
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
@@ -330,7 +332,7 @@ def plot_relationship_between_performance_dict_category_dict(performance_date_di
     category_date_dict = misc.change_key_string_key_date(category_date_dict)
     performance_date_dict_common, category_date_dict_common = misc.common_keys(performance_date_dict,category_date_dict)
     performance_list, category_dict_list = misc.get_list_from_dicts_sorted_dates(performance_date_dict_common,category_date_dict_common)
-    liwc_value_list = [x["anger"] for x in category_dict_list]
+    liwc_value_list = [x["tentativeness"] for x in category_dict_list]
 
     liwc_value_list = [x for _, x in sorted(zip(performance_list, liwc_value_list), key=lambda pair: pair[0])]
 
@@ -367,8 +369,8 @@ def plot_relationship_between_performance_dict_category_dict(performance_date_di
     print(updated_liwc_value_list)
     print(updated_performance_list)
 
-
-    general_plot(updated_performance_list, updated_liwc_value_list,xlabel="Performance",ylabel="Percentage of words", title="Anger")
+    updated_performance_list = [x for x in updated_performance_list]
+    general_plot(updated_performance_list, updated_liwc_value_list,xlabel="Performance",ylabel="Percentage of words", title="Tentativeness")
 
 
 
@@ -441,9 +443,9 @@ if __name__ == "__main__":
     # ====================Plotting performance of the book/booklist.===========
     # =========================================================================
 
-    # book_name = "AFEI"
+    # book_name = "MENG"
     # dates_list, performance_list = performance.performance_given_book(cfg.PERFORMANCE_FILE, book_name, start_week=123,
-    #                                                                   end_week=263, only_week=False)
+    #                                                                   end_week=150, only_week=True)
     # plot_list_vs_dates(dates_list, performance_list, xlabel="Dates", ylabel="Performance", title="Performance of Book",
     #                    legend_info=book_name)
 
@@ -468,7 +470,7 @@ if __name__ == "__main__":
     # dates_list = [misc.calculate_datetime(week_num=x) for x in range(start_week,end_week +1)]
     # total_performance_list = []
     # for k_value in range(1,7):
-    #     performance_week_dict,_,_ = relationships.compute_relationships_performance_kcore(cfg.KCORE_JOINT,start_week=start_week,
+    #     performance_week_dict,_,_ = relationships.compute_relationships_performance_kcore(cfg.KCORE_PERSONAL,start_week=start_week,
     #                                                                                   end_week=end_week,k_value=k_value,max_lag=max_lag)
     #     performance_list = []
     #     for date_week in dates_list:
@@ -489,7 +491,7 @@ if __name__ == "__main__":
     # subordinates_list = account_to_employee_dict["MENG"]
     #
     # sent_sentiment_dict, recv_sentiment_dict, within_sentiment_dict = \
-    #     sentiment.compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL, subordinates_list,4,False,True,75,150,True)
+    #     sentiment.compute_sentiments_from_filelist_multiproc(cfg.SENTIMENT_PERSONAL, subordinates_list,4,False,True,123,150,True)
     #
     # dates_list = sorted(sent_sentiment_dict.keys())
     # sent_sentiment_list = [] ; recv_sentiment_list = [] ; within_sentiment_list = []
@@ -505,7 +507,7 @@ if __name__ == "__main__":
     # legend_info = ["sent-sentiment", "receive-sentiment", "within-sentiment"]
     #
     # plot_list_of_lists_vs_dates(dates_list, y_list, "Dates", "Sentiment", "Sentiment vs Dates", legend_info)
-
+    #
     # plot_list_vs_dates(dates_list,y_list[0],"Dates","Sent-Sentiment", "Sent-Sentiment vs Dates","MENG")
     # plot_list_vs_dates(dates_list, y_list[1], "Dates", "Receive-Sentiment", "Receive-Sentiment vs Dates", "MENG")
 
@@ -569,7 +571,7 @@ if __name__ == "__main__":
     # ==============================Plotting Performance and LIWC ==============
     # ===========================================================================================================
 
-    plot_relationship_performance_liwc(cfg.SENTIMENT_PERSONAL,["ADAM"],complete_network=False,in_network=True, start_week=123,
-                                       end_week=200, only_week=False)
+    # plot_relationship_performance_liwc(cfg.SENTIMENT_PERSONAL,["ADAM"],complete_network=False,in_network=True, start_week=123,
+    #                                    end_week=200, only_week=False)
 
     pass
