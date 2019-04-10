@@ -71,10 +71,13 @@ class NetworkModuleTest(unittest.TestCase):
         expected_graph = nx.DiGraph()
 
         ### Only using inside hedgefund employees
-        expected_graph.add_edge(64, 242, weight=1.0); expected_graph.add_edge(242, 64, weight=2.0)
-        expected_graph.add_edge(280, 242, weight = 1.0)
+
         im_df = pd.read_csv(cfg.IM_TEST_FILE)
         message_matrix,_,_ = network.create_matrix(im_df,in_network=True)
+
+        expected_graph.add_nodes_from(range(1, len(message_matrix)))
+        expected_graph.add_edge(64, 242, weight=1.0); expected_graph.add_edge(242, 64, weight=2.0)
+        expected_graph.add_edge(280, 242, weight=1.0)
         observed_graph = network.create_graph(message_matrix,un_directed=False)
         self.assertEqual(nx.is_isomorphic(observed_graph, expected_graph), True)
 
