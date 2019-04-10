@@ -262,12 +262,12 @@ def compute_relationship_between_hierarchy_sentiment(src_dir_path,top_user,start
             sorted_level_sentiment_list[level_num].append(level_sentiment_dict_list[level_num][date])
 
 
-    legend_info = ["level - {0}".format(x+1) for x in range(num_levels_hierarchy-1)]
+    legend_info = ["level-{0} to level-{1}".format(x+1,x+2) for x in range(num_levels_hierarchy-1)]
     dates_list = [datetime.strptime(x, '%Y-%m-%d') for x in dates_list]
 
     ## just considering 3 levels as the rest of the levels dont exchange messages so often.
 
-    plot.plot_list_of_lists_vs_dates(dates_list,sorted_level_sentiment_list[:num_levels_hierarchy],
+    plot.plot_list_of_lists_vs_dates(dates_list,sorted_level_sentiment_list[1:num_levels_hierarchy],
                                      xlabel= "Dates",ylabel = "sentiment of messages",title="Sentiment of messages between different hierarchies",
                                      legend_info=legend_info[:num_levels_hierarchy])
 
@@ -469,7 +469,7 @@ if __name__ == "__main__":
     # ===========Computing causality given book list(performance & sentiment) in_network = True=================
     # ===========================================================================================================
 
-    # book_list = ["MENG"]
+    # # book_list = ["MENG"]
     # book_list = misc.read_book_file(cfg.BOOK_FILE)
     # book_list_causal_dict = compute_relationships_book_list_performance_sentiment(book_list, start_week=123,
     #                                                                               end_week=263,
@@ -482,7 +482,7 @@ if __name__ == "__main__":
     # output_dict = misc.read_file_into_dict(
     #     cfg.PKL_FILES + "/books_causal_effect_cause_sentiment_effect_performance_daily.pkl")
     # print(output_dict)
-
+    #
     # for book,dict1 in book_list_causal_dict.items():
     #     for msg_type,dict2 in dict1.items():
     #         print("==============================={0}==========================================".format(msg_type))
