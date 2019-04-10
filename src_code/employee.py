@@ -13,6 +13,7 @@ import config as cfg
 class Employee:
     def __init__(self):
         self.immediate_subordinates = []
+        self.top_user_in_hierarchy  = ""
 
     #############################################################
     ## Setter Functions of the variables
@@ -332,6 +333,42 @@ def subordinates_given_employee(employee_dict:dict, inp_employee_name:str) -> Li
     subordinates_list = sorted(subordinates_list)
     return subordinates_list
 
+# =========================================================================
+# ==================== Add top user in hierarchy for each user.============
+# =========================================================================
+
+def compute_top_user_for_each_user(employee_dict : dict) -> dict:
+    """Creates top user for each user present in the hedgefund.
+
+    Args:
+        employee_dict : Employee Dictionary.
+
+    Returns:
+          Employee dictionary with top employee for each user included.
+
+    """
+    for employee_name, employee in employee_dict.items():
+        # print(employee_name)
+        if(employee_name != "ROOT"):
+            curr_supervisor = employee.supervisor ; prev_supervisor = employee_name
+            while curr_supervisor != "ROOT":
+                if (curr_supervisor != ""):
+                    ## To convert "Wade, Peter -> wade_peter"
+                    curr_supervisor = curr_supervisor.split('/')[0]  ## for now taking just one.
+                    curr_supervisor = curr_supervisor.split(',');
+                    curr_supervisor = [x.strip().lower() for x in curr_supervisor]
+                    curr_supervisor = "_".join(curr_supervisor)
+
+                    prev_supervisor = curr_supervisor
+                    curr_supervisor = employee_dict[curr_supervisor].supervisor
+                else:
+                    break
+        else:
+            break
+
+        employee.top_user_in_hierarchy = prev_supervisor
+
+    return employee_dict
 
 
 # =========================================================================
@@ -389,5 +426,7 @@ employee_dict = get_emplpoyees_from_file(cfg.EMPLOYEE_MASTER_FILE)
 employee_list = list(employee_dict.keys())
 account_to_employee_dict,employee_to_account_dict = map_employee_account(cfg.TRADER_BOOK_ACCOUNT_FILE)
 employee_dict = create_employee_hierarchy(employee_dict)
+employee_dict = compute_top_user_for_each_user(employee_dict)
+employee_id_to_username_dict,employee_username_to_id_dict = employee_id_to_username_from_file(cfg.EMPLOYEE_MASTER_FILE)
 # =========================================================================
 
