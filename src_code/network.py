@@ -75,13 +75,71 @@ def create_matrix(im_df : pd.DataFrame, in_network: bool = True) -> Tuple[np.nda
 
     return message_matrix,message_adj_list,id_to_username_dict
 
-def create_graph(message_matrix, un_directed:bool = True, weight_threshold=1) -> nx.Graph :
+
+def create_matrix_for_edge_present(im_df, in_network = True):
+    """Takes in a df and constructs message adjacency list and message matrix """
+
+
+    ## start with in_network users
+    id_to_username_dict = employee_id_to_username_dict
+    username_to_id_dict = employee_username_to_id_dict
+    user_count = cfg.TOTAL_EMPLOYEES
+
+    ### Filter, outside hedgefund users from the data.
+    if in_network:
+        im_df = im_df[im_df["sender_in_network"]==1]
+        im_df = im_df[im_df["receiver_in_network"] == 1]
+        user_count = cfg.TOTAL_EMPLOYEES
+    else:
+        users_in_curr_file = im_df['sender_user_name'].append(im_df['receiver_user_name']).unique().tolist()
+        ## Get only outside users. sort them alphabetically.
+        total_outside_users = sorted(list(set(users_in_curr_file) - set(employee_list)))
+        user_count = cfg.TOTAL_EMPLOYEES + len(total_outside_users)
+        ## Fill the dictionary with outside users.
+        idx_count = cfg.TOTAL_EMPLOYEES + 1
+        for user in total_outside_users:
+            id_to_username_dict[idx_count] = user
+            username_to_id_dict[user] = idx_count
+            idx_count = idx_count + 1
+
+
+    unique_im_buddies = im_df['sender_user_name'].append(im_df['receiver_user_name']).unique().tolist()
+    print("the number of unique buddies: %d" % len(unique_im_buddies))
+
+    buddy_to_idx = {}
+    idx_to_buddy = {}
+
+
+    ## Assign index to each buddy
+    count = 0
+    for buddy in unique_im_buddies:
+        buddy_to_idx[buddy] = count
+        idx_to_buddy[count] = buddy
+        count = count + 1
+
+    # print(buddy_to_idx)
+    unique_im_buddies_count = len(unique_im_buddies)
+    message_matrix = np.zeros((unique_im_buddies_count,unique_im_buddies_count))
+    # message_matrix = []
+    message_adj_list = [set() for _ in range(unique_im_buddies_count)]
+
+    for index, row in im_df.iterrows():
+        sender_buddy_idx = buddy_to_idx[row['sender_user_name']]
+        receiver_buddy_idx = buddy_to_idx[row['receiver_user_name']]
+        message_matrix[sender_buddy_idx][receiver_buddy_idx] = message_matrix[sender_buddy_idx][receiver_buddy_idx] + 1
+        message_matrix[receiver_buddy_idx][sender_buddy_idx] = message_matrix[receiver_buddy_idx][sender_buddy_idx] + 1
+
+
+    return message_matrix,buddy_to_idx,idx_to_buddy
+
+def create_graph(message_matrix, un_directed:bool = True, weight_threshold=1, include_all_nodes:bool = True) -> nx.Graph :
     """Creates Graphs from the given message matrix.
 
     Args:
         message_matrix : Adjacency matrix for messages.
         un_directed : If true, returns undirected graph.
         weight_threshold : Threshold for the weight for edge to be considered.
+        include_all_nodes : whether to include nodes in the graph, which doesnt share a message
     Returns:
         Directed Graph.
 
@@ -91,7 +149,8 @@ def create_graph(message_matrix, un_directed:bool = True, weight_threshold=1) ->
 
     if un_directed:
         G = nx.Graph()
-        G.add_nodes_from(range(1,len_matrix))
+        if include_all_nodes:
+            G.add_nodes_from(range(1,len_matrix))
         message_matrix1 = np.zeros((len(message_matrix), len(message_matrix)))
         for i in range(len(message_matrix)):
             for j in range(i + 1, len(message_matrix)):
@@ -101,7 +160,9 @@ def create_graph(message_matrix, un_directed:bool = True, weight_threshold=1) ->
 
     else:
         G = nx.DiGraph()
-        G.add_nodes_from(range(1, len_matrix))
+        if include_all_nodes:
+            G.add_nodes_from(range(1,len_matrix))
+
 
     for src in range(len(message_matrix)):
         for dest in range(len(message_matrix)):
