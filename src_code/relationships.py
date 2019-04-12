@@ -460,13 +460,13 @@ if __name__ == "__main__":
     # # ===========Computing causality given book list(performance & kcore)=====================
     # # =========================================================================================
 
-    # start_week = 123; end_week = 125 ; k_value = 4 ; max_lag = 20
-    # print("===============================BUSINESS==========================================")
-    #
-    # compute_relationships_performance_kcore(cfg.KCORE_BUSINESS,start_week=start_week,end_week=end_week,k_value=k_value,max_lag=max_lag)
-    # print("===============================PERSONAL==========================================")
-    #
-    # compute_relationships_performance_kcore(cfg.KCORE_PERSONAL, start_week=start_week, end_week=end_week, k_value=k_value, max_lag=max_lag)
+    start_week = 123; end_week = 263 ; k_value = 10 ; max_lag = 20
+    print("===============================BUSINESS==========================================")
+
+    compute_relationships_performance_kcore(cfg.KCORE_BUSINESS_TOTAL,start_week=start_week,end_week=end_week,k_value=k_value,max_lag=max_lag)
+    print("===============================PERSONAL==========================================")
+
+    compute_relationships_performance_kcore(cfg.KCORE_PERSONAL_TOTAL, start_week=start_week, end_week=end_week, k_value=k_value, max_lag=max_lag)
     # print("===============================JOINT==========================================")
     # compute_relationships_performance_kcore(cfg.KCORE_JOINT,start_week=start_week, end_week= end_week, k_value= k_value, max_lag= max_lag)
 
@@ -533,8 +533,6 @@ if __name__ == "__main__":
     # compute_relationship_performance_distance_between_networks(cfg.SENTIMENT_BUSINESS, cfg.SENTIMENT_PERSONAL, employee.employee_list,
     #                                                            180, 180, 215, True, True, 6)
 
-    compute_relationship_performance_distance_between_networks(cfg.SENTIMENT_BUSINESS, cfg.SENTIMENT_PERSONAL,
-                                                              employee.subordinates_given_employee(employee.employee_dict,""),
-                                                              180, 180, 215, True, True, 6)
+
 
     pass

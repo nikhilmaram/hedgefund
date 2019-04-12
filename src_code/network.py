@@ -24,13 +24,13 @@ employee_id_to_username_dict,employee_username_to_id_dict = employee.employee_id
 # ==================== Creating Graph and K-Core===========================
 # =========================================================================
 
-def create_matrix(im_df : pd.DataFrame, in_network: bool = True) -> Tuple[np.ndarray,List[set],dict]:
+def create_matrix(im_df : pd.DataFrame, in_network: bool = True, user_list : List = None) -> Tuple[np.ndarray,List[set],dict]:
     """ Creates Adjacency Matrix and Adjacency lists by reading the IM Data file.
 
     Args:
         im_df : IM dataframe.
         in_network : Boolean Variable determines whether the graph should be built within the hedgefund network. (True : In , False: All)
-
+        user_list           : User list for which edges are considered.
     Returns:
         Matrix : Adjacency matrix created with each row corresponding to the user. 1-297 indexes are Employees in the network.
         List : Adjacency List with each element corresponding to the user.
@@ -46,6 +46,10 @@ def create_matrix(im_df : pd.DataFrame, in_network: bool = True) -> Tuple[np.nda
     id_to_username_dict = employee_id_to_username_dict
     username_to_id_dict = employee_username_to_id_dict
     user_count = cfg.TOTAL_EMPLOYEES
+
+    if user_list is not None:
+        ## get the dataframe for the chats corresponds to users in userlist.
+        im_df = im_df[im_df["sender_user_name"].isin(user_list) | im_df["receiver_user_name"].isin(user_list)]
 
     ### Filter, outside hedgefund users from the data.
     if in_network:
@@ -63,6 +67,8 @@ def create_matrix(im_df : pd.DataFrame, in_network: bool = True) -> Tuple[np.nda
             id_to_username_dict[idx_count] = user
             username_to_id_dict[user] = idx_count
             idx_count = idx_count + 1
+
+
 
     message_matrix = np.zeros((user_count + 1, user_count + 1)) ## indexing from 1.
     message_adj_list = [set() for _ in range(user_count + 1)]

@@ -38,6 +38,11 @@ KCORE_PERSONAL_TOTAL        = GENERATED_DATA_DIR + "/kcore_total/personal/"
 KCORE_BUSINESS_TOTAL        = GENERATED_DATA_DIR + "/kcore_total/business/"
 KCORE_JOINT_TOTAL           = GENERATED_DATA_DIR + "/kcore_total/joint/"
 
+
+KCORE_PERSONAL_USER_LIST    = GENERATED_DATA_DIR + "/kcore_user_list/personal/"
+KCORE_BUSINESS_USER_LIST    = GENERATED_DATA_DIR + "/kcore_user_list/business/"
+KCORE_JOINT_USER_LIST       = GENERATED_DATA_DIR + "/kcore_user_list/joint/"
+
 PKL_FILES                   = GENERATED_DATA_DIR + "/pkl_files/"
 
 

@@ -89,7 +89,7 @@ def modify_im_dfs_filelist_multiprocess(src_dir_path:str,dst_dir_path : str,num_
 # ================ Generating weekly kcore files===========================
 # =========================================================================
 
-def compute_kcore_values_filelist(file_list:List[str], src_dir_path:str, dst_dir_path : str,in_network=True):
+def compute_kcore_values_filelist(file_list:List[str], src_dir_path:str, dst_dir_path : str,in_network=True, user_list:List = None):
     """ Runs compute_kcore_values function for each file in the filelist.
 
     Args:
@@ -97,7 +97,7 @@ def compute_kcore_values_filelist(file_list:List[str], src_dir_path:str, dst_dir
         src_dir_path        : path to the files present in file_list
         dst_dir_path        : path to where output files has to be written.
         in_network          : Boolean Variable determines whether the graph should be built within the hedgefund network. (True : In , False: All)
-
+        user_list           : User list for which edges are considered.
     Returns:
         None
     """
@@ -108,7 +108,7 @@ def compute_kcore_values_filelist(file_list:List[str], src_dir_path:str, dst_dir
             ## input file_path
             file_path = os.path.join(src_dir_path, file_name)
             im_df = pd.read_csv(file_path)
-            message_matrix, _ ,_ = network.create_matrix(im_df,in_network=in_network)
+            message_matrix, _ ,_ = network.create_matrix(im_df,in_network=in_network,user_list = user_list)
             G = network.create_graph(message_matrix)
             kcore_number_list, kcore_num_of_nodes_list, kcore_num_components_list, \
             kcore_largest_cc_num_nodes_list, kcore_largest_cc_nodes_list= network.compute_kcore_values_list(G,25)
@@ -128,7 +128,7 @@ def compute_kcore_values_filelist(file_list:List[str], src_dir_path:str, dst_dir
             output_path = dst_dir_path + "/kcore_largest_cc_nodes_week{0}.csv".format(week_num)
             misc.writing_list_into_file(kcore_largest_cc_nodes_list, output_path)
 
-def compute_kcore_values_filelist_multiprocess(src_dir_path:str,dst_dir_path : str,num_process : int,in_network:bool = True):
+def compute_kcore_values_filelist_multiprocess(src_dir_path:str,dst_dir_path : str,num_process : int,in_network:bool = True, user_list : List = None):
     """Runs the compute_kcore_values_filelist on multiple process.
 
     Args:
@@ -136,11 +136,12 @@ def compute_kcore_values_filelist_multiprocess(src_dir_path:str,dst_dir_path : s
         dst_dir_path        : path to where output files has to be written.
         num_process         : Number of process.
         in_network          : Boolean Variable determines whether the graph should be built within the hedgefund network. (True : In , False: All)
+        user_list           : User list for which edges are considered.
     """
     list_of_file_list = misc.splitting_all_files(src_dir_path,num_process)
 
     for file_list in list_of_file_list:
-        p = multiprocessing.Process(target=compute_kcore_values_filelist, args=(file_list,src_dir_path,dst_dir_path,in_network))
+        p = multiprocessing.Process(target=compute_kcore_values_filelist, args=(file_list,src_dir_path,dst_dir_path,in_network,user_list))
         p.start()
 
 
