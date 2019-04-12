@@ -4,13 +4,27 @@
 import employee
 import config as cfg
 import processing_all_files
+import  networkx as nx
+import network
+import interactions
+import numpy as np
 
-address_to_user_dict,user_to_address_dict =  employee.map_user_address(cfg.ADDRESS_LINK_FILE)
-employee_dict = employee.get_emplpoyees_from_file(cfg.EMPLOYEE_MASTER_FILE)
+import employee
+import misc
+import plot
 
-print("Employees in Address File : {0}".format(len(user_to_address_dict.keys())))
-print("Employees in Master File  : {0}".format(len(employee_dict.keys())))
+distance_dict = interactions.compute_distance_between_business_and_social_embedding(cfg.SENTIMENT_BUSINESS,cfg.SENTIMENT_PERSONAL,employee.employee_list,
+                                                                                    k =5, start_week= 125, end_week= 130, in_network= True, only_week=True)
 
-print(user_to_address_dict.keys())
-print(employee_dict.keys())
 
+distance_dict = misc.change_key_string_key_date(distance_dict)
+dates_list  = []
+distance_list = []
+
+for date in sorted(distance_dict.keys()):
+    distance_list.append(distance_dict[date])
+    dates_list.append(date)
+
+plot.plot_list_vs_dates(dates_list,distance_list,"","","","")
+
+print(distance_dict)
