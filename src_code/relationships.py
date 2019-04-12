@@ -64,7 +64,8 @@ def compute_causality(cause : List,effect : List,max_lag : int=5)-> dict:
         granger_dict = grangercausalitytests(inp_2d,max_lag,verbose=False)
         for lag in granger_dict.keys():
             causality_dict[lag] = granger_dict[lag][0]
-    except:
+    except Exception as e:
+        print(e)
         for lag in range(max_lag):
             causality_dict[lag] = {}
 
@@ -356,13 +357,17 @@ def compute_relationships_performance_kcore(src_dir_path: str, start_week : int,
             ## get the epmployee ids from kcore and get their corresponding user names.
             employee_username_list_kcore = []
             employee_id_list_kcore = kcore_largest_cc_nodes_list[idx].split('-')
+            employee_title_list_kcore = []
             for employee_id in employee_id_list_kcore:
                 employee_id = int(employee_id)
                 if employee_id in employee_id_username_dict.keys():
                     employee_username_list_kcore.append(employee_id_username_dict[employee_id])
+                    # employee_title_list_kcore.append(employee.employee_dict[employee_id_username_dict[employee_id]].title)
+
 
 
             # print(employee_username_list_kcore)
+            # print(employee_title_list_kcore)
 
             ## get the book list corresponding to employees present in k-core and use precomputed weekly performance.
             book_list_kcore = employee.books_given_employee_list(employee_username_list_kcore)
@@ -455,7 +460,7 @@ if __name__ == "__main__":
     # # ===========Computing causality given book list(performance & kcore)=====================
     # # =========================================================================================
 
-    # start_week = 123; end_week = 200 ; k_value = 6 ; max_lag = 20
+    # start_week = 123; end_week = 125 ; k_value = 4 ; max_lag = 20
     # print("===============================BUSINESS==========================================")
     #
     # compute_relationships_performance_kcore(cfg.KCORE_BUSINESS,start_week=start_week,end_week=end_week,k_value=k_value,max_lag=max_lag)
@@ -524,9 +529,12 @@ if __name__ == "__main__":
     # ==============================Computing relationship between performance and distance between networks=====
     # ===========================================================================================================
 
+    #
+    # compute_relationship_performance_distance_between_networks(cfg.SENTIMENT_BUSINESS, cfg.SENTIMENT_PERSONAL, employee.employee_list,
+    #                                                            180, 180, 215, True, True, 6)
 
-    compute_relationship_performance_distance_between_networks(cfg.SENTIMENT_BUSINESS, cfg.SENTIMENT_PERSONAL, employee.employee_list,
-                                                               20, 125, 160, True, True, 10)
-
+    compute_relationship_performance_distance_between_networks(cfg.SENTIMENT_BUSINESS, cfg.SENTIMENT_PERSONAL,
+                                                              employee.subordinates_given_employee(employee.employee_dict,""),
+                                                              180, 180, 215, True, True, 6)
 
     pass
