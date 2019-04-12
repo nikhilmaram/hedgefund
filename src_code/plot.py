@@ -12,6 +12,7 @@ import queue
 import random
 import numpy as np
 import math
+import pandas as pd
 
 import network
 import employee
@@ -435,7 +436,7 @@ if __name__ == "__main__":
     # ====================Plotting hierarchy===================================
     # =========================================================================
 
-    # plot_employee_hierarchy(employee_dict["ROOT"], employee_dict, cfg.PLOTS_DIR + "/root.jpg")
+    plot_employee_hierarchy(employee_dict["ROOT"], employee_dict, cfg.PLOTS_DIR + "/root.pdf")
     ## If sapanski is the top employee.
     # plot_employee_hierarchy(employee_dict["sapanski_lawrence"],employee_dict,cfg.PLOTS_DIR+"/sapanski_lawrence.jpg")
 
@@ -555,10 +556,12 @@ if __name__ == "__main__":
     # =========================================================================
     # ====================Plotting Message graph ==============================
     # =========================================================================
-
-    # subordinates_list = employee.subordinates_given_employee(employee_dict, "sapanski_lawrence")
-    # message_matrix, message_adj_list, id_to_username_dict = network.create_matrix(cfg.SENTIMENT_PERSONAL+"im_df_week150.csv")
-    # plot_message_graph(message_matrix,id_to_username_dict,employee_dict,cfg.PLOTS_DIR+"/message_graph_week150.png",subordinates_list,1)
+    # subordinates_list = []
+    # subordinates_list = employee.subordinates_given_employee(employee_dict, "ROOT")
+    # # subordinates_list.extend(employee.subordinates_given_employee(employee_dict, "schimel_richard"))
+    # im_df = pd.read_csv(cfg.SENTIMENT_BUSINESS+"/im_df_week123.csv")
+    # message_matrix, message_adj_list, id_to_username_dict = network.create_matrix(im_df)
+    # plot_message_graph(message_matrix,id_to_username_dict,employee_dict,cfg.PLOTS_DIR+"/message_graph_week123.pdf",subordinates_list,1)
 
     # ===========================================================================================================
     # ==============================Computing relationship between sentiment same  hierarchy==============
