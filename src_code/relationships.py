@@ -10,6 +10,8 @@ from datetime import datetime
 from typing import List
 from typing import Tuple
 import os
+import random
+import shutil
 
 import performance
 import employee
@@ -18,6 +20,7 @@ import misc
 import config as cfg
 import plot
 import interactions
+import processing_all_files
 
 
 def check_series_stationary(x:List):
@@ -375,8 +378,9 @@ def compute_relationships_performance_kcore(src_dir_path: str, start_week : int,
             curr_week_performance_list = []
             for book in book_list_kcore:
                 performance_week_dict_book = performance_week_dict.get(book,{})
-                curr_week_book_performance = performance_week_dict_book.get(week_num,0)
-                curr_week_performance_list.append(curr_week_book_performance)
+                if week_num in performance_week_dict_book.keys():
+                    curr_week_book_performance = performance_week_dict_book[week_num]
+                    curr_week_performance_list.append(curr_week_book_performance)
 
             if len(curr_week_performance_list) > 0:
                 curr_week_performance = sum(curr_week_performance_list)/len(curr_week_performance_list)
@@ -425,21 +429,25 @@ def compute_relationship_performance_distance_between_networks(business_dir_path
         curr_week_performance_list = []
         for book in book_list:
             performance_week_dict_book = performance_week_dict.get(book, {})
-            curr_week_book_performance = performance_week_dict_book.get(week_num, 0)
-            curr_week_performance_list.append(curr_week_book_performance)
+            if week_num in performance_week_dict_book.keys():
+                curr_week_book_performance = performance_week_dict_book[week_num]
+                curr_week_performance_list.append(curr_week_book_performance)
 
         if len(curr_week_performance_list) > 0:
             curr_week_performance = sum(curr_week_performance_list) / len(curr_week_performance_list)
             if(curr_week_performance != 0):
                 users_performance_dict[misc.calculate_datetime(week_num=week_num)] = curr_week_performance
 
+
     distance_dict, users_performance_dict = misc.common_keys(distance_dict, users_performance_dict)
+    print(users_performance_dict)
 
     distance_list, users_performance_list = misc.get_list_from_dicts_sorted_dates(distance_dict, users_performance_dict)
+    print(users_performance_list)
 
     ## need the inverse of the user performance list since closer the network higher the performance.
     users_performance_list = [1/x for x in users_performance_list]
-
+    print(users_performance_list)
     causal_performance_distance_dict = compute_causality(distance_list, users_performance_list, max_lag)
 
     misc.print_causality_dict(causal_performance_distance_dict)
@@ -451,6 +459,63 @@ def compute_relationship_performance_distance_between_networks(business_dir_path
 
     compute_correlation(users_performance_list, distance_list)
 
+# ========================================================================================
+# =============== Performance vs K-core with random nodes.================================
+# ========================================================================================
+
+def compute_relations_performance_kcore_random_nodes(n_iter: int,num_nodes:int, max_k_value:int = 4,
+                                                     start_week :int = 123, end_week:int = 263, max_lag = 10 ):
+    """Compute relationship between k-core and random nodes for n_iter iterations.
+    
+    Args:
+        n_iter      : number of iterations to run the experiment.
+        num_nodes   : Number of nodes to be considered.
+        max_k_value : Maximum number of cores.
+        start_week  : start week.
+        end_week    : end week.
+        max_lag     : maximum lag.
+        
+    Returns:
+        performance_kcore_random_node_dict : causal dictionary. key - iteration number, value : k_dit
+    
+    """
+    employee_id_list = list(range(1,298))
+    performance_kcore_random_node_dict = {}
+    # shutil.rmtree(cfg.KCORE_PERSONAL_TEMP,ignore_errors=True); shutil.rmtree(cfg.KCORE_BUSINESS_TEMP, ignore_errors=True); shutil.rmtree(cfg.KCORE_JOINT_TEMP, ignore_errors=True)
+    for iter in range(n_iter):
+        iter_dict = {}
+        os.mkdir(cfg.KCORE_PERSONAL_TEMP) ; os.mkdir(cfg.KCORE_BUSINESS_TEMP) ; os.mkdir(cfg.KCORE_JOINT_TEMP)
+        user_id_list = random.sample(employee_id_list,num_nodes)
+        user_name_list = [employee.employee_id_to_username_dict[id] for id in user_id_list]
+
+        processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_PERSONAL, cfg.KCORE_PERSONAL_TEMP, 16,
+                                                                        user_list=user_name_list, start_week = start_week, end_week= end_week)
+        processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_BUSINESS, cfg.KCORE_BUSINESS_TEMP, 16,
+                                                                        user_list=user_name_list, start_week = start_week, end_week= end_week)
+        processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_JOINT,cfg.KCORE_JOINT_TEMP, 16,
+                                                                        user_list=user_name_list, start_week = start_week, end_week= end_week)
+
+        for k_value in range(1, max_k_value + 1):
+            k_dict = {}
+            _, _, causal_performance_dict_business = compute_relationships_performance_kcore(
+                cfg.KCORE_BUSINESS_TEMP, start_week=start_week,end_week=end_week,k_value=k_value,max_lag=max_lag)
+
+            _, _, causal_performance_dict_personal = compute_relationships_performance_kcore(
+                cfg.KCORE_PERSONAL_TEMP, start_week=start_week, end_week=end_week, k_value=k_value, max_lag=max_lag)
+
+            _, _, causal_performance_dict_joint = compute_relationships_performance_kcore(
+                cfg.KCORE_JOINT_TEMP, start_week=start_week, end_week=end_week, k_value=k_value, max_lag=max_lag)
+
+            k_dict["business"] = causal_performance_dict_business ; k_dict["personal"] = causal_performance_dict_personal
+            k_dict["joint"]    = causal_performance_dict_joint
+            iter_dict[k_value] = k_dict
+
+        performance_kcore_random_node_dict[iter] = iter_dict
+
+        print(user_name_list)
+        shutil.rmtree(cfg.KCORE_PERSONAL_TEMP); shutil.rmtree(cfg.KCORE_BUSINESS_TEMP); shutil.rmtree(cfg.KCORE_JOINT_TEMP)
+
+    return performance_kcore_random_node_dict
 
 
 
@@ -460,15 +525,18 @@ if __name__ == "__main__":
     # # ===========Computing causality given book list(performance & kcore)=====================
     # # =========================================================================================
 
-    start_week = 123; end_week = 263 ; k_value = 10 ; max_lag = 20
-    print("===============================BUSINESS==========================================")
-
-    compute_relationships_performance_kcore(cfg.KCORE_BUSINESS_TOTAL,start_week=start_week,end_week=end_week,k_value=k_value,max_lag=max_lag)
-    print("===============================PERSONAL==========================================")
-
-    compute_relationships_performance_kcore(cfg.KCORE_PERSONAL_TOTAL, start_week=start_week, end_week=end_week, k_value=k_value, max_lag=max_lag)
+    # start_week = 123; end_week = 200 ; k_value = 4 ; max_lag = 20
+    # print("===============================BUSINESS==========================================")
+    #
+    # _,_, causal_performance_dict_business = compute_relationships_performance_kcore(cfg.KCORE_BUSINESS,
+    #                                                                        start_week=start_week,end_week=end_week,k_value=k_value,max_lag=max_lag)
+    # print("===============================PERSONAL==========================================")
+    #
+    # _, _, causal_performance_dict_personal = compute_relationships_performance_kcore(cfg.KCORE_PERSONAL,
+    #                                                                         start_week=start_week, end_week=end_week, k_value=k_value, max_lag=max_lag)
     # print("===============================JOINT==========================================")
-    # compute_relationships_performance_kcore(cfg.KCORE_JOINT,start_week=start_week, end_week= end_week, k_value= k_value, max_lag= max_lag)
+    # _, _, causal_performance_dict_joint = compute_relationships_performance_kcore(cfg.KCORE_JOINT,
+    #                                                                         start_week=start_week, end_week= end_week, k_value= k_value, max_lag= max_lag)
 
     # ===========================================================================================================
     # ===========Computing causality given book list(performance & sentiment) in_network = True=================
@@ -529,10 +597,18 @@ if __name__ == "__main__":
     # ==============================Computing relationship between performance and distance between networks=====
     # ===========================================================================================================
 
-    #
-    # compute_relationship_performance_distance_between_networks(cfg.SENTIMENT_BUSINESS, cfg.SENTIMENT_PERSONAL, employee.employee_list,
-    #                                                            180, 180, 215, True, True, 6)
+    # user_list = employee.employee_list
+    user_list = employee.subordinates_given_employee(employee.employee_dict, "sapanski_lawrence")
+    print(user_list)
+    compute_relationship_performance_distance_between_networks(cfg.SENTIMENT_BUSINESS, cfg.SENTIMENT_PERSONAL, user_list,
+                                                               180, 125, 160, True, True, 5)
 
 
-
+    # # ========================================================================================
+    # # ===========Computing causality (performance & kcore) of random nodes=====================
+    # # =========================================================================================
+    # performance_kcore_random_node_dict = compute_relations_performance_kcore_random_nodes(n_iter = 25,num_nodes=75,max_k_value=5,
+    #                                                                                       start_week=123,end_week=263,max_lag= 10)
+    # misc.write_dict_in_file(performance_kcore_random_node_dict, cfg.PKL_FILES + "/performance_kcore_random_node_causal_effect.pkl")
+    # print(misc.read_file_into_dict(cfg.PKL_FILES + "/performance_kcore_random_node_causal_effect.pkl"))
     pass
