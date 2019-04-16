@@ -42,19 +42,28 @@ if __name__ == "__main__":
     # Computing K-core values from the business and personal files only for PM,RA,Traders.
     # =========================================================================
 
-    print(employee.subordinates_given_employee(employee.employee_dict,"hagarty_john"))
-    print(employee.subordinates_given_employee(employee.employee_dict,"harary_joel"))
-
-    user_list = list((set(employee.employee_list) - set(employee.subordinates_given_employee(employee.employee_dict,"hagarty_john"))) - set(employee.subordinates_given_employee(employee.employee_dict,"harary_joel")))
-    print(user_list)
-    # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_PERSONAL,cfg.KCORE_PERSONAL_USER_LIST,1,user_list=user_list)
-    # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_BUSINESS, cfg.KCORE_BUSINESS_USER_LIST, 1,user_list=user_list)
-    processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_JOINT, cfg.KCORE_JOINT_USER_LIST, 8,user_list=user_list)
+    # print(employee.subordinates_given_employee(employee.employee_dict,"hagarty_john"))
+    # print(employee.subordinates_given_employee(employee.employee_dict,"harary_joel"))
+    #
+    # user_list = list((set(employee.employee_list) - set(employee.subordinates_given_employee(employee.employee_dict,"hagarty_john"))) - set(employee.subordinates_given_employee(employee.employee_dict,"harary_joel")))
+    # print(user_list)
+    # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_PERSONAL,cfg.KCORE_PERSONAL_USER_LIST,8,user_list=user_list)
+    # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_BUSINESS, cfg.KCORE_BUSINESS_USER_LIST, 8,user_list=user_list)
+    # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_JOINT, cfg.KCORE_JOINT_USER_LIST, 8,user_list=user_list)
 
     # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_PERSONAL,cfg.KCORE_PERSONAL_TOTAL,8,False)
     # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_BUSINESS, cfg.KCORE_BUSINESS_TOTAL, 8,False)
     # processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_JOINT, cfg.KCORE_JOINT_TOTAL, 8,False)
 
+
+    # =========================================================================
+    # Computing K-core values from the business and personal files only within a community.
+    # =========================================================================
+
+    user_list = employee.subordinates_given_employee(employee.employee_dict,"sapanski_lawrence")
+    processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_PERSONAL,cfg.KCORE_PERSONAL_SAPANSKI_LAWRENCE, 8,user_list=user_list)
+    processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_BUSINESS, cfg.KCORE_BUSINESS_SAPANSKI_LAWRENCE, 8,user_list=user_list)
+    processing_all_files.compute_kcore_values_filelist_multiprocess(cfg.SENTIMENT_JOINT, cfg.KCORE_JOINT_SAPANSKI_LAWRENCE, 8,user_list=user_list)
 
     # =========================================================================
     # ==================== Employee Related ===================================
