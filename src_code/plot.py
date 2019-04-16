@@ -408,6 +408,10 @@ def plot_relationship_performance_liwc(src_dir_path: str,inp_book_list:List, com
     plot_relationship_between_performance_dict_category_dict(performance_date_dict,total_recv_category_dict)
 
 
+
+
+
+
 if __name__ == "__main__":
 
     employee_dict = employee.get_emplpoyees_from_file(cfg.EMPLOYEE_MASTER_FILE)
@@ -436,7 +440,7 @@ if __name__ == "__main__":
     # ====================Plotting hierarchy===================================
     # =========================================================================
 
-    plot_employee_hierarchy(employee_dict["ROOT"], employee_dict, cfg.PLOTS_DIR + "/root.pdf")
+    # plot_employee_hierarchy(employee_dict["ROOT"], employee_dict, cfg.PLOTS_DIR + "/root.pdf")
     ## If sapanski is the top employee.
     # plot_employee_hierarchy(employee_dict["sapanski_lawrence"],employee_dict,cfg.PLOTS_DIR+"/sapanski_lawrence.jpg")
 
@@ -456,11 +460,14 @@ if __name__ == "__main__":
     # =========================================================================
     # ====================Plotting group performance===========================
     # =========================================================================
-
-    # subordinates_list = employee.subordinates_given_employee(employee_dict,"cacouris_michael")
-    # book_list = employee.books_given_employee_list(subordinates_list)
-    # dates_dict,performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,book_list,75,150,True)
-    # performance_date_dict = performance.combine_performance_given_book_list(dates_dict,performance_dict)
+    subordinates_list = ["cacouris_michael"]
+    # subordinates_list = employee.subordinates_given_employee(employee_dict,"sapanski_lawrence")
+    book_list = employee.books_given_employee_list(subordinates_list)
+    dates_dict,performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,book_list,125,127,True)
+    print(dates_dict)
+    print(performance_dict)
+    performance_date_dict = performance.combine_performance_given_book_list(dates_dict,performance_dict, True)
+    print(performance_date_dict)
     # plot_list_vs_dates(list(performance_date_dict.keys()),list(performance_date_dict.values()),"Dates","Performance","Performance vs Dates","performance list")
 
     # =========================================================================
