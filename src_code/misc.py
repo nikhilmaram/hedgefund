@@ -262,3 +262,21 @@ def print_causality_dict(causality_dict):
 
     for lag, tuple_values in causality_dict.items():
         print("Lag : {0},  Values: {1}".format(lag,tuple_values))
+
+def return_user_cluster(clusters_list : List, user_name:str):
+    """Returns the cluster which contains given user.
+
+    Args:
+        clusters_list : List of lists, where each list contains elements belong to a cluster.
+        user_name     : user name of the user whose cluster needs to be returned.
+
+    Returns:
+        user_cluster_list : cluster list which user belongs to.
+
+    """
+
+    for user_cluster_list in clusters_list:
+        if user_name in user_cluster_list:
+            return user_cluster_list
+
+    raise Exception("User name not present in the cluster list")
