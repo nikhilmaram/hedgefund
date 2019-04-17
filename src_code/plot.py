@@ -75,7 +75,7 @@ def plot_list_vs_dates(x :List,y: List,xlabel :str,ylabel: str,title:str,legend_
     fig, ax = plt.subplots()
     ax.plot_date(x,y,'-o',label=legend_info)
 
-    months = MonthLocator(range(1, 13), bymonthday=1, interval=1)
+    months = MonthLocator(range(1, 13), bymonthday=1, interval=2)
     monthsFmt = DateFormatter("%b '%y")
     # every monday
     mondays = WeekdayLocator(MONDAY)
@@ -320,7 +320,7 @@ def plot_sentiment_within_hierarchy(src_dir_path,top_user,start_week:int = 75, e
 
 
 # ========================================================================================
-# ==========================Plots Performance vs LIWC========================================
+# ==========================Plots Performance vs LIWC=====================================
 # ========================================================================================
 def plot_relationship_between_performance_dict_category_dict(performance_date_dict:dict, category_date_dict: dict):
     """Plots relationship between performance and category dict.
@@ -333,7 +333,7 @@ def plot_relationship_between_performance_dict_category_dict(performance_date_di
     category_date_dict = misc.change_key_string_key_date(category_date_dict)
     performance_date_dict_common, category_date_dict_common = misc.common_keys(performance_date_dict,category_date_dict)
     performance_list, category_dict_list = misc.get_list_from_dicts_sorted_dates(performance_date_dict_common,category_date_dict_common)
-    liwc_value_list = [x["tentativeness"] for x in category_dict_list]
+    liwc_value_list = [x["sadness"] for x in category_dict_list]
 
     liwc_value_list = [x for _, x in sorted(zip(performance_list, liwc_value_list), key=lambda pair: pair[0])]
 
@@ -369,9 +369,10 @@ def plot_relationship_between_performance_dict_category_dict(performance_date_di
 
     print(updated_liwc_value_list)
     print(updated_performance_list)
-
-    updated_performance_list = [x for x in updated_performance_list]
-    general_plot(updated_performance_list, updated_liwc_value_list,xlabel="Performance",ylabel="Percentage of words", title="Tentativeness")
+    # causation : -4, cognitive : +1, tentativeness : -3.4, Insight : +3
+    # affect : +10.7 , anger : 0, anxiety: 0, sadness : 0
+    updated_performance_list = [x  for x in updated_performance_list]
+    general_plot(updated_performance_list, updated_liwc_value_list,xlabel="Change in performance(%)",ylabel="Percentage of words", title="Sadness")
 
 
 
@@ -408,8 +409,101 @@ def plot_relationship_performance_liwc(src_dir_path: str,inp_book_list:List, com
     plot_relationship_between_performance_dict_category_dict(performance_date_dict,total_recv_category_dict)
 
 
+# ========================================================================================
+# ==========================Plots Performance vs Clustering coefficient===================
+# ========================================================================================
+
+def plot_relationship_between_performance_dict_clustering_dict(performance_date_dict:dict, clustering_coefficient_dict: dict):
+    """Plots relationship between performance and category dict.
+
+    Args:
+        performance_date_dict           : Performance date dictionary.
+        clustering_coefficient_dict     : clustering coefficient date dictionary.
+    """
+
+    clustering_coefficient_dict = misc.change_key_string_key_date(clustering_coefficient_dict)
+    performance_date_dict_common, clustering_coefficient_dict_common = misc.common_keys(performance_date_dict,clustering_coefficient_dict)
+    performance_list, clustering_coefficient_dict_list = misc.get_list_from_dicts_sorted_dates(performance_date_dict_common,clustering_coefficient_dict_common)
+
+    causal_dict = relationships.compute_causality(clustering_coefficient_dict_list, performance_list, max_lag= 5)
+    misc.print_causality_dict(causal_dict)
+
+    dates_list = list(sorted(performance_date_dict_common.keys()))
+    plot_list_vs_dates(dates_list,performance_list,xlabel="Dates", ylabel= "Performance",
+                                title="Performance vs Time",legend_info="")
+
+    plot_list_vs_dates(dates_list, clustering_coefficient_dict_list, xlabel="Dates", ylabel="Clustering coefficient",
+                       title="Clustering coefficient vs Time", legend_info="")
+
+    ## sort the clustering coefficient list w.r.t performance list.
+    clustering_coefficient_list = [x for _, x in sorted(zip(performance_list, clustering_coefficient_dict_list), key=lambda pair: pair[0])]
+    ## sort the performance list.
+    performance_list = sorted(performance_list)
+    # general_plot(performance_list, liwc_value_list)
+    print(clustering_coefficient_list)
+    print(performance_list)
+
+    ## Flooring the performance values and getting the mean of clustering_coefficient_list values corresponding to the floored performance value.
+    performance_list = [math.floor(x) for x in performance_list]
+    updated_performance_list = sorted(list(set(performance_list)))
+    updated_clustering_coefficient_list = []
+
+    for x in updated_performance_list:
+        accumulated_clustering_coefficient = 0.0 ; count = 0.0
+        for i in range(len(performance_list)):
+            if (performance_list[i] == x):
+                accumulated_clustering_coefficient = accumulated_clustering_coefficient + clustering_coefficient_list[i]
+                count = count + 1
+        updated_clustering_coefficient_list.append(accumulated_clustering_coefficient/count)
+
+    ## Remove zeros
+    performance_list = updated_performance_list
+    clustering_coefficent_list  = updated_clustering_coefficient_list
+    updated_performance_list = []
+    updated_clustering_coefficent_list  = []
+
+    for i in range(len(performance_list)):
+        if(clustering_coefficent_list[i] != 0):
+            updated_clustering_coefficent_list.append(clustering_coefficent_list[i])
+            updated_performance_list.append(performance_list[i])
+
+    print(updated_clustering_coefficent_list)
+    print(updated_performance_list)
+
+    updated_performance_list = [x-18 for x in updated_performance_list]
+    general_plot(updated_performance_list, updated_clustering_coefficent_list,xlabel="Change in Performance(%)",ylabel="Clustering coefficient", title="Clustering coefficeint vs Change in Performance")
 
 
+def plot_relationship_performance_clustering_coefficient(src_dir_path: str,in_network:bool = True,include_all_nodes:bool = False,
+                                             start_week : int = 123,end_week : int=150):
+    """Plots relationship between performance and clustering coefficient.
+
+    Args:
+        src_dir_path        : Directory path to IM files.
+        include_all_nodes : whether to include nodes in the graph, which doesnt share a message
+        in_network          : messages considered within/outside network.
+        start_week          : start week.
+        end_week            : end week.
+
+    Returns:
+        None
+
+    """
+    inp_book_list = misc.read_book_file(cfg.BOOK_FILE)
+
+    ## Get the performance dictionary
+
+    dates_dict, performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,inp_book_list,
+                                                                           start_week=start_week,
+                                                                           end_week=end_week, only_week=True)
+    performance_date_dict = performance.combine_performance_given_book_list(dates_dict, performance_dict,
+                                                                            only_week=True)
+
+    ## Get the clustering dictionary
+    clustering_coefficient_dict = network.clustering_coefficient_given_file_list(src_dir_path, start_week= start_week, end_week= end_week, in_network= in_network,
+                                                                     inlcude_all_nodes=include_all_nodes)
+
+    plot_relationship_between_performance_dict_clustering_dict(performance_date_dict,clustering_coefficient_dict)
 
 
 if __name__ == "__main__":
@@ -460,14 +554,14 @@ if __name__ == "__main__":
     # =========================================================================
     # ====================Plotting group performance===========================
     # =========================================================================
-    subordinates_list = ["cacouris_michael"]
-    # subordinates_list = employee.subordinates_given_employee(employee_dict,"sapanski_lawrence")
-    book_list = employee.books_given_employee_list(subordinates_list)
-    dates_dict,performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,book_list,125,127,True)
-    print(dates_dict)
-    print(performance_dict)
-    performance_date_dict = performance.combine_performance_given_book_list(dates_dict,performance_dict, True)
-    print(performance_date_dict)
+    # subordinates_list = ["cacouris_michael"]
+    # # subordinates_list = employee.subordinates_given_employee(employee_dict,"sapanski_lawrence")
+    # book_list = employee.books_given_employee_list(subordinates_list)
+    # dates_dict,performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,book_list,125,127,True)
+    # print(dates_dict)
+    # print(performance_dict)
+    # performance_date_dict = performance.combine_performance_given_book_list(dates_dict,performance_dict, True)
+    # print(performance_date_dict)
     # plot_list_vs_dates(list(performance_date_dict.keys()),list(performance_date_dict.values()),"Dates","Performance","Performance vs Dates","performance list")
 
     # =========================================================================
@@ -580,8 +674,14 @@ if __name__ == "__main__":
     # ===========================================================================================================
     # ==============================Plotting Performance and LIWC ==============
     # ===========================================================================================================
-
+    # #
     # plot_relationship_performance_liwc(cfg.SENTIMENT_PERSONAL,["ADAM"],complete_network=False,in_network=True, start_week=123,
     #                                    end_week=200, only_week=False)
+
+    # ===========================================================================================================
+    # ==============================Plotting Performance and Clustering coefficeint ==============
+    # ===========================================================================================================
+
+    plot_relationship_performance_clustering_coefficient(cfg.SENTIMENT_BUSINESS, in_network=True, include_all_nodes=False, start_week= 123, end_week=200)
 
     pass
