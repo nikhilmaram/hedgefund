@@ -289,7 +289,74 @@ def compute_element_kcore_for_plots(dir_path:str, start_week :int, end_week :int
 
     return dates, y_list
 
+# =========================================================================
+# ==================== Clustering coefficient given Dataframe==============
+# =========================================================================
+
+def clustering_coefficient_given_df(im_df : pd.DataFrame, in_network:bool = True, user_list: List = None, inlcude_all_nodes = False):
+    """Compute the clustering coefficient given a IM dataframe.
+
+    Args:
+        im_df : IM dataframe.
+        in_network : Boolean Variable determines whether the graph should be built within the hedgefund network. (True : In , False: All)
+        user_list           : User list for which edges are considered.
+        include_all_nodes : whether to include nodes in the graph, which doesnt share a message
+
+    Return:
+        clustering_coefficent : clustering coefficient for the graph.
+    """
+
+    message_matrix, _, id_to_username_dict = create_matrix(im_df, in_network=in_network)
+    G = create_graph(message_matrix, un_directed=True, weight_threshold=1, include_all_nodes= False)
+    clustering_coefficient  = nx.average_clustering(G,weight=None)
+    return clustering_coefficient
+
+# =========================================================================
+# ==================== Clustering coefficient given filelist==============
+# =========================================================================
+def clustering_coefficient_given_file_list(src_dir_path: str, start_week:int = 123, end_week:int= 263,
+                                           in_network:bool = True, user_list: List = None, inlcude_all_nodes = False) -> dict:
+    """Computes clustering coefficient given a file list.
+
+    Args:
+        src_dir_path    : Directory path for IM files.
+        start_week      : start week.
+        end_week        : end week.
+        in_network      : Boolean Variable determines whether the graph should be built within the hedgefund network. (True : In , False: All)
+        user_list       : User list for which edges are considered.
+        include_all_nodes : whether to include nodes in the graph, which doesnt share a message
+
+    Returns:
+
+        clustering_coefficient_dict : Clustering Dictionary. key - date, value - clustering coefficient for the date.
+
+    """
+    clustering_coefficient_dict = {}
+    file_list = misc.splitting_all_files(src_dir_path, 1, start_week, end_week)[0]
+    for file_name in file_list:
+        # print(file_name)
+        file_path = os.path.join(src_dir_path, file_name)
+        df = pd.read_csv(file_path)
+        week_num = int(file_name.split('.')[0].split('_')[-1][4:])
+        curr_date = misc.calculate_date(week_num=week_num).strftime("%Y-%m-%d")
+        clustering_coefficient = clustering_coefficient_given_df(df, in_network=in_network, user_list= user_list, inlcude_all_nodes=inlcude_all_nodes)
+        clustering_coefficient_dict[curr_date] = clustering_coefficient
+
+    return clustering_coefficient_dict
+
+
 
 if __name__ == "__main__":
+    # =========================================================================
+    # ==================== Clustering coefficient =============================
+    # =========================================================================
+
+
+    # im_df = pd.read_csv(cfg.SENTIMENT_BUSINESS + "/im_df_week126.csv")
+    # clustering_coefficient = clustering_coefficient_given_df(im_df, in_network=True, inlcude_all_nodes= False)
+    # print(clustering_coefficient)
+
+    clustering_coefficient_dict = clustering_coefficient_given_file_list(cfg.SENTIMENT_BUSINESS, 123, 125, True, inlcude_all_nodes=False)
+    print(clustering_coefficient_dict)
     pass
 
