@@ -6,6 +6,7 @@ from typing import List
 from typing import Tuple
 import os
 import pickle
+from sklearn.preprocessing import normalize
 
 def create_book_file(file):
     """Creates a book file from reading Trader Book Account xlsx"""
@@ -280,3 +281,20 @@ def return_user_cluster(clusters_list : List, user_name:str):
             return user_cluster_list
 
     raise Exception("User name not present in the cluster list")
+
+def normalize_input_list(x: List, norm="l2") -> List:
+    """Normalize the input list.
+
+    Args:
+        x : Input Array List
+    Returns:
+        norm_x : Normalised input.
+    """
+
+    list_minimum = min(x)
+
+    x = [(a-list_minimum)  for a in x]
+    list_maximum = max(x)
+    x = [a/list_maximum for a in x]
+    return x
+    # return normalize([x], norm=norm)[0]

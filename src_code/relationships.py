@@ -65,8 +65,10 @@ def compute_causality(cause : List,effect : List,max_lag : int=5)-> dict:
     try:
         inp_2d = np.column_stack((effect,cause))
         granger_dict = grangercausalitytests(inp_2d,max_lag,verbose=False)
+
         for lag in granger_dict.keys():
             causality_dict[lag] = granger_dict[lag][0]
+            # print(granger_dict[lag][1][0].params)
     except Exception as e:
         print(e)
         for lag in range(max_lag):
@@ -124,8 +126,14 @@ def compute_causal_relationships_performance_sentiment(performance_date_dict,sen
     performance_list, sentiment_list = misc.get_list_from_dicts_sorted_dates(performance_date_dict_common,
                                                                              sent_sentiment_dict_common)
 
-    sent_dict = compute_causality(performance_list, sentiment_list, max_lag)
-    # sent_dict = compute_causality(sentiment_list, performance_list, max_lag)
+    dates_list = list(sorted(performance_date_dict_common.keys()))
+
+    plot.plot_two_graphs_in_single_plot(dates_list, y_cause= performance_list, y_effect=sentiment_list,xlabel="Time",
+                                        ycause_label="Performance", yeffect_label="Sent Sentiment", title="Performance vs Sent Sentiment",
+                                        legend_cause="Performance with lag 1", legend_effect="Sent sentiment", lag =1)
+
+    # sent_dict = compute_causality(performance_list, sentiment_list, max_lag)
+    sent_dict = compute_causality(sentiment_list, performance_list, max_lag)
     book_causal_dict["sent"] = sent_dict
 
     print("===============================RECEIVED==========================================")
@@ -135,8 +143,14 @@ def compute_causal_relationships_performance_sentiment(performance_date_dict,sen
     print(len(performance_date_dict_common), len(recv_sentiment_dict_common))
     performance_list, sentiment_list = misc.get_list_from_dicts_sorted_dates(performance_date_dict_common,
                                                                              recv_sentiment_dict_common)
-    recv_dict = compute_causality(performance_list,sentiment_list, max_lag)
-    # recv_dict = compute_causality(sentiment_list, performance_list, max_lag)
+    # recv_dict = compute_causality(performance_list,sentiment_list, max_lag)
+    recv_dict = compute_causality(sentiment_list, performance_list, max_lag)
+    dates_list = list(sorted(performance_date_dict_common.keys()))
+
+    plot.plot_two_graphs_in_single_plot(dates_list, y_cause=performance_list, y_effect=sentiment_list, xlabel="Time",
+                                        ycause_label="Performance", yeffect_label="Receive Sentiment",
+                                        title="Performance vs Receive Sentiment",
+                                        legend_cause="Performance with lag 2", legend_effect="Receive sentiment", lag=2)
     book_causal_dict["recv"] = recv_dict
 
     print("===============================WITHIN==========================================")
@@ -146,8 +160,8 @@ def compute_causal_relationships_performance_sentiment(performance_date_dict,sen
     print(len(performance_date_dict_common), len(within_sentiment_dict_common))
     performance_list, sentiment_list = misc.get_list_from_dicts_sorted_dates(performance_date_dict_common,
                                                                              within_sentiment_dict_common)
-    within_dict  = compute_causality(performance_list, sentiment_list, max_lag)
-    # within_dict = compute_causality(sentiment_list, performance_list, max_lag)
+    # within_dict  = compute_causality(performance_list, sentiment_list, max_lag)
+    within_dict = compute_causality(sentiment_list, performance_list, max_lag)
     book_causal_dict["within_dict"] = within_dict
 
     return book_causal_dict
@@ -275,6 +289,16 @@ def compute_relationship_between_hierarchy_sentiment(src_dir_path,top_user,start
                                      xlabel= "Dates",ylabel = "sentiment of messages",title="Sentiment of messages between different hierarchies",
                                      legend_info=legend_info[:num_levels_hierarchy])
 
+    plot.plot_two_graphs_in_single_plot(dates_list, y_cause=sorted_level_sentiment_list[0],y_effect=sorted_level_sentiment_list[1],xlabel="Time",
+                                        ycause_label="Sentiment of messages from level-1", yeffect_label="Sentiment of messages from level-2",
+                                        title="Sentiment of messages between different hierarchies",legend_cause="level-1 to level-2",
+                                        legend_effect="level-2 to level-3",lag =3)
+
+    plot.plot_two_graphs_in_single_plot(dates_list, y_cause=sorted_level_sentiment_list[1],y_effect=sorted_level_sentiment_list[2], xlabel="Time",
+                                        ycause_label="Sentiment of messages from level-2",yeffect_label="Sentiment of messages from level-3",
+                                        title="Sentiment of messages between different hierarchies",
+                                        legend_cause="level-2 to level-3", legend_effect="level-3 to level-4", lag=0)
+
     for i in range(num_levels_hierarchy-2):
         print("=========================level===========================")
         compute_correlation(sorted_level_sentiment_list[i],sorted_level_sentiment_list[i+1])
@@ -306,11 +330,15 @@ def compute_causal_relationships_performance_kcore(kcore_performance_dict, kcore
                                                                              kcore_num_nodes_dict_common)
 
     causal_performance_kcore_dict = compute_causality(kcore_num_list, performance_list, max_lag)
+    dates_list = list(sorted(kcore_performance_dict_common.keys()))
+
+    plot.plot_two_graphs_in_single_plot(dates_list, y_cause= kcore_num_list, y_effect= performance_list, xlabel= "Time",ycause_label= "Kcore",yeffect_label= "Performance",
+                                        title="Kcore Vs Performance",legend_cause="Kcore with shift 4",legend_effect="Performance",lag=4)
 
     return causal_performance_kcore_dict
 
 
-def compute_relationships_performance_kcore(src_dir_path: str, start_week : int,end_week : int, k_value : int,max_lag : int = 5) -> Tuple[dict,dict,dict]:
+def  compute_relationships_performance_kcore(src_dir_path: str, start_week : int,end_week : int, k_value : int,max_lag : int = 5) -> Tuple[dict,dict,dict]:
     """Computes the relationships between performance and k-core.
 
     Args:
@@ -454,8 +482,20 @@ def compute_relationship_performance_distance_between_networks(business_dir_path
 
     dates_list = sorted(list(distance_dict.keys()))
 
-    plot.plot_list_vs_dates(dates_list,users_performance_list, "Time", "Inverse of user performance","Inverse of User Performance list Vs Time", "ALL")
+    plot.plot_list_vs_dates(dates_list,users_performance_list, "Time", "Inverse of performance","Inverse of Performance list Vs Time", "ALL")
     plot.plot_list_vs_dates(dates_list, distance_list, "Time", "Distance Between Social and Business Network", "Distance Between Social and Business Network Vs Time", "ALL")
+
+    plot.plot_two_graphs_in_single_plot(dates_list, y_cause= distance_list, y_effect= users_performance_list, xlabel= "Time",
+                                        ycause_label="Distance Between Social and Business Network", yeffect_label="Inverse of performance",
+                                        title="Network Distance Vs Inverse Performance",legend_cause="Distance",
+                                        legend_effect="Performance Inverse", lag = 1)
+
+    plot.plot_two_graphs_in_single_plot(dates_list, y_cause=distance_list, y_effect=users_performance_list,
+                                        xlabel="Time",
+                                        ycause_label="Distance Between Social and Business Network",
+                                        yeffect_label="Inverse of performance",
+                                        title="Network Distance Vs Inverse Performance", legend_cause="Distance with lag 4",
+                                        legend_effect="Performance Inverse", lag=4)
 
     compute_correlation(users_performance_list, distance_list)
 
@@ -525,9 +565,9 @@ if __name__ == "__main__":
     # # ===========Computing causality given book list(performance & kcore)=====================
     # # =========================================================================================
 
-    # start_week = 123; end_week = 200 ; k_value = 4 ; max_lag = 20
+    # start_week = 135; end_week = 156 ; k_value = 5 ; max_lag = 6
     # print("===============================BUSINESS==========================================")
-    #
+
     # _,_, causal_performance_dict_business = compute_relationships_performance_kcore(cfg.KCORE_BUSINESS,
     #                                                                        start_week=start_week,end_week=end_week,k_value=k_value,max_lag=max_lag)
     # print("===============================PERSONAL==========================================")
@@ -541,15 +581,15 @@ if __name__ == "__main__":
     # ===========================================================================================================
     # ===========Computing causality given book list(performance & sentiment) in_network = True=================
     # ===========================================================================================================
-
-    # # book_list = ["MENG"]
-    # book_list = misc.read_book_file(cfg.BOOK_FILE)
+    #
+    # book_list = ["MENG"]
+    # # book_list = misc.read_book_file(cfg.BOOK_FILE)
     # book_list_causal_dict = compute_relationships_book_list_performance_sentiment(book_list, start_week=123,
-    #                                                                               end_week=263,
-    #                                                                               maximum_lag=10, only_week=False,
+    #                                                                               end_week=156,
+    #                                                                               maximum_lag=5, only_week=True,
     #                                                                               complete_network=False,
     #                                                                               in_network=True)
-    #
+
     # misc.write_dict_in_file(book_list_causal_dict,
     #                         cfg.PKL_FILES + "/books_causal_effect_cause_sentiment_effect_performance_daily.pkl")
     # output_dict = misc.read_file_into_dict(
@@ -567,20 +607,20 @@ if __name__ == "__main__":
     # ===========================================================================================================
 
     # book_list = ["MENG"]
-
-    # book_list = misc.read_book_file(cfg.BOOK_FILE)
+    #
+    # # book_list = misc.read_book_file(cfg.BOOK_FILE)
     # book_list_causal_dict = compute_relationships_book_list_performance_sentiment(book_list, start_week=123,
-    #                                                                               end_week=263,
+    #                                                                               end_week=200,
     #                                                                               maximum_lag=10, only_week=False,
     #                                                                               complete_network=False,
     #                                                                               in_network=False)
     #
-    # misc.write_dict_in_file(book_list_causal_dict,
-    #                         cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl")
-    # output_dict = misc.read_file_into_dict(
-    #     cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl")
-    # print(output_dict)
-
+    # # misc.write_dict_in_file(book_list_causal_dict,
+    # #                         cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl")
+    # # output_dict = misc.read_file_into_dict(
+    # #     cfg.PKL_FILES + "/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl")
+    # # print(output_dict)
+    #
     # for book, dict1 in book_list_causal_dict.items():
     #     for msg_type,dict2 in dict1.items():
     #             print("==============================={0}==========================================".format(msg_type))
@@ -591,17 +631,17 @@ if __name__ == "__main__":
     # ==============================Computing relationship between sentiment of different hierarchy==============
     # ===========================================================================================================
 
-    # compute_relationship_between_hierarchy_sentiment(cfg.SENTIMENT_BUSINESS,"ROOT",start_week=125, end_week=160,only_week=False)
+    compute_relationship_between_hierarchy_sentiment(cfg.SENTIMENT_BUSINESS,"ROOT",start_week=135, end_week=156,only_week=True)
 
     # ===========================================================================================================
     # ==============================Computing relationship between performance and distance between networks=====
     # ===========================================================================================================
-
+    #
     # user_list = employee.employee_list
-    user_list = employee.subordinates_given_employee(employee.employee_dict, "sapanski_lawrence")
-    print(user_list)
-    compute_relationship_performance_distance_between_networks(cfg.SENTIMENT_BUSINESS, cfg.SENTIMENT_PERSONAL, user_list,
-                                                               180, 125, 160, True, True, 5)
+    # # user_list = employee.subordinates_given_employee(employee.employee_dict, "sapanski_lawrence")
+    # print(user_list)
+    # compute_relationship_performance_distance_between_networks(cfg.SENTIMENT_BUSINESS, cfg.SENTIMENT_PERSONAL, user_list,
+    #                                                            180, 135, 156, True, True, 5)
 
 
     # # ========================================================================================

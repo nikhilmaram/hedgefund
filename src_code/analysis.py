@@ -5,6 +5,7 @@ import numpy as np
 
 import misc
 import config as cfg
+import employee
 
 
 
@@ -75,6 +76,35 @@ def analyse_causality(pkl_file_name :str,inp_msg_type : str, ftest_type : str ="
 
     print(lag_pvalues_dict)
 
+# ========================================================================================
+# =================== Analyse books and employee ========================
+# ========================================================================================
+def employee_type_books():
+    book_list = misc.read_book_file(cfg.BOOK_FILE)
+    account_to_employee_dict = employee.account_to_employee_dict
+    employee_to_account_dict = employee.employee_to_account_dict
+    employee_dict = employee.employee_dict
+
+    for book, employee_list in account_to_employee_dict.items():
+        try:
+            title_list = [employee_dict[user].title for user in employee_list]
+            # print(book, employee_list)
+            print(book, title_list)
+        except:
+            print("user not found")
+
+    num_books = 0
+    for user, book_list in employee_to_account_dict.items():
+        num_books = num_books + len(book_list)
+
+    print(num_books/len(employee_to_account_dict))
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
@@ -117,4 +147,10 @@ if __name__ == "__main__":
     #
     # analyse_causality(cfg.PKL_FILES+"/books_causal_effect_cause_performance_effect_sentiment_daily_out_network.pkl",
     #                   "within_dict","ssr_chi2test", "Performance affect on Within-Sentiment - Out-Network")
+
+    # ========================================================================================
+    # =================== Analyse books and employee ========================
+    # ========================================================================================
+    employee_type_books()
+
     pass

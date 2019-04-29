@@ -42,7 +42,7 @@ def plot_list_of_lists_vs_dates(x :List,y_list : List[List],xlabel :str = "",yla
         # plt.plot(x, y_list[i],'-o', label='%d-core' % (i+1))
         ax.plot_date(x, y_list[i], '-o', label=legend_info[i])
 
-    months = MonthLocator(range(1, 13), bymonthday=1, interval=2)
+    months = MonthLocator(range(1, 13), bymonthday=1, interval=1)
     monthsFmt = DateFormatter("%b '%y")
     # every monday
     mondays = WeekdayLocator(MONDAY)
@@ -52,7 +52,7 @@ def plot_list_of_lists_vs_dates(x :List,y_list : List[List],xlabel :str = "",yla
     ax.xaxis.set_minor_locator(mondays)
     ax.autoscale_view()
 
-    mpl.rcParams["legend.loc"] = 'upper left'
+    mpl.rcParams["legend.loc"] = 'lower left'
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
@@ -75,7 +75,7 @@ def plot_list_vs_dates(x :List,y: List,xlabel :str,ylabel: str,title:str,legend_
     fig, ax = plt.subplots()
     ax.plot_date(x,y,'-o',label=legend_info)
 
-    months = MonthLocator(range(1, 13), bymonthday=1, interval=2)
+    months = MonthLocator(range(1, 13), bymonthday=1, interval=1)
     monthsFmt = DateFormatter("%b '%y")
     # every monday
     mondays = WeekdayLocator(MONDAY)
@@ -113,6 +113,79 @@ def general_plot(x:List, y:List,xlabel:str="",ylabel:str="",title:str="",legend=
     plt.legend()
     plt.show()
 
+
+def plot_two_graphs_in_single_plot(x: List, y_cause: List, y_effect: List, xlabel="", ycause_label="", yeffect_label="",
+                                   title="",legend_cause="",legend_effect="",lag:int =1):
+    """Plot two graphs in a single plot.
+    Args:
+        x   : Dates list.
+        y1  : 1st y variable.
+        y2  : 2nd y variable.
+        lag : lag by which the y variable has to shift.
+    """
+    y_cause = misc.normalize_input_list(y_cause,norm="l1")
+    y_effect = misc.normalize_input_list(y_effect, norm="l1")
+    # y_effect = [(x+0.2)/5 for x in y_effect]
+
+    fig, ax1 = plt.subplots()
+
+    months = MonthLocator(range(1, 13), bymonthday=1, interval=1)
+    monthsFmt = DateFormatter("%b '%y")
+    # every monday
+    mondays = WeekdayLocator(MONDAY)
+    days = DayLocator(bymonthday=range(1, 30), interval=1)
+
+    ax1.xaxis.set_major_locator(months)
+    ax1.xaxis.set_major_formatter(monthsFmt)
+    ax1.xaxis.set_minor_locator(mondays)
+    ax1.autoscale_view()
+
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    ax2.legend(loc=0)
+    ax2.xaxis.set_major_locator(months)
+    ax2.xaxis.set_major_formatter(monthsFmt)
+    ax2.xaxis.set_minor_locator(mondays)
+    ax2.autoscale_view()
+
+    color = 'tab:red'
+    ax1.set_xlabel(xlabel=xlabel)
+    ax1.set_ylabel(ylabel=ycause_label, color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+
+    if lag != 0:
+        y_cause_shift = [0.00 for _ in range(len(y_cause))]
+        y_cause_shift[lag:] = y_cause[:-lag]
+    else:
+        y_cause_shift = y_cause
+
+    print(y_cause)
+    print(y_cause_shift)
+
+
+    plot1 = ax1.plot_date(x, y_cause_shift, '-o',color=color,label=legend_cause)
+
+
+    color = 'tab:blue'
+    ax2.set_ylabel(ylabel=yeffect_label, color=color)  # we already handled the x-label with ax1
+    ax2.tick_params(axis='y', labelcolor=color)
+    plot2 = ax2.plot_date(x, y_effect, '-o',color=color,label=legend_effect)
+    plots = plot1 + plot2
+
+
+
+    ## For shifted plot
+    # plot3 = ax1.plot_date(x, y_cause_shift, '-o', color='tab:green', label=legend_cause + "_shift")
+    # plots = plots + plot3
+    mpl.rcParams["legend.loc"] = 'lower right'
+
+    labs = [l.get_label() for l in plots]
+    ax1.legend(plots, labs)
+
+    plt.title(title)
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+
+    plt.show()
 # =========================================================================
 # ====================Plotting hierarchy===================================
 # =========================================================================
@@ -513,22 +586,22 @@ if __name__ == "__main__":
     # =========================================================================
     # ====================Plotting K-core Files================================
     # =========================================================================
-
-    # dates,y_list = network.compute_element_kcore_for_plots(cfg.KCORE_PERSONAL_TOTAL,123,200,"kcore_largest_cc_num_nodes",6)
-    # legend_info = [str(i)+"-core" for i in range(len(y_list))]
-    # plot_list_of_lists_vs_dates(dates,y_list,"Time","Number of Nodes in Largest Connected Component",
-    #                    "Number of Nodes in Largest Connected Component Vs Time : Personal",legend_info)
-    # #
-    # dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_BUSINESS_TOTAL,123, 200, "kcore_largest_cc_num_nodes",6)
-    # legend_info = [str(i)+"-core" for i in range(len(y_list))]
-    # plot_list_of_lists_vs_dates(dates, y_list, "Time", "Number of Nodes in Largest Connected Component",
-    #                                  "Number of Nodes in Largest Connected Component Vs Time : Business", legend_info)
     #
-    # dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_JOINT_TOTAL, 123, 200, "kcore_largest_cc_num_nodes",
+    # dates,y_list = network.compute_element_kcore_for_plots(cfg.KCORE_PERSONAL,123,200,"kcore_largest_cc_num_nodes",6)
+    # legend_info = [str(i)+"-core" for i in range(len(y_list))]
+    # plot_list_of_lists_vs_dates(dates,y_list[2:],"Time","Number of Nodes in Largest Connected Component",
+    #                    "Number of Nodes in Largest Connected Component Vs Time : Social",legend_info[2:])
+    # #
+    # dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_BUSINESS,135, 156, "kcore_largest_cc_num_nodes",6)
+    # legend_info = [str(i)+"-core" for i in range(len(y_list))]
+    # plot_list_of_lists_vs_dates(dates, y_list[2:], "Time", "Number of Nodes in Largest Connected Component",
+    #                                  "Number of Nodes in Largest Connected Component Vs Time : Business", legend_info[2:])
+    #
+    # dates, y_list = network.compute_element_kcore_for_plots(cfg.KCORE_JOINT, 123, 200, "kcore_largest_cc_num_nodes",
     #                                                         6)
     # legend_info = [str(i) + "-core" for i in range(len(y_list))]
-    # plot_list_of_lists_vs_dates(dates, y_list, "Time", "Number of Nodes in Largest Connected Component",
-    #                             "Number of Nodes in Largest Connected Component Vs Time : Joint", legend_info)
+    # plot_list_of_lists_vs_dates(dates, y_list[2:], "Time", "Number of Nodes in Largest Connected Component",
+    #                             "Number of Nodes in Largest Connected Component Vs Time : Joint", legend_info[2:])
 
     # =========================================================================
     # ====================Plotting hierarchy===================================
@@ -555,15 +628,17 @@ if __name__ == "__main__":
     # ====================Plotting group performance===========================
     # =========================================================================
     # subordinates_list = ["cacouris_michael"]
-    # # subordinates_list = employee.subordinates_given_employee(employee_dict,"sapanski_lawrence")
+    # subordinates_list = employee.subordinates_given_employee(employee_dict,"ROOT")
+    # subordinates_list = list(employee.employee_to_account_dict.keys())
     # book_list = employee.books_given_employee_list(subordinates_list)
-    # dates_dict,performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,book_list,125,127,True)
-    # print(dates_dict)
-    # print(performance_dict)
-    # performance_date_dict = performance.combine_performance_given_book_list(dates_dict,performance_dict, True)
-    # print(performance_date_dict)
-    # plot_list_vs_dates(list(performance_date_dict.keys()),list(performance_date_dict.values()),"Dates","Performance","Performance vs Dates","performance list")
-
+    book_list = misc.read_book_file(cfg.BOOK_FILE)
+    dates_dict,performance_dict = performance.performance_given_book_list(cfg.PERFORMANCE_FILE,book_list,123,200,True)
+    print(dates_dict)
+    print(performance_dict)
+    performance_date_dict = performance.combine_performance_given_book_list(dates_dict,performance_dict, True)
+    print(performance_date_dict)
+    plot_list_vs_dates(list(performance_date_dict.keys()),list(performance_date_dict.values()),"Dates","Performance","Performance vs Dates","performance list")
+    misc.write_dict_in_file(performance_date_dict, cfg.BALANCE_PKL_FILES+"/performance_week_123_200.pkl")
     # =========================================================================
     # ====================Plotting kcore performance.==========================
     # =========================================================================
@@ -572,7 +647,7 @@ if __name__ == "__main__":
     # dates_list = [misc.calculate_datetime(week_num=x) for x in range(start_week,end_week +1)]
     # total_performance_list = []
     # for k_value in range(1,7):
-    #     performance_week_dict,_,_ = relationships.compute_relationships_performance_kcore(cfg.KCORE_PERSONAL,start_week=start_week,
+    #     performance_week_dict,_,_ = relationships.compute_relationships_performance_kcore(cfg.KCORE_BUSINESS,start_week=start_week,
     #                                                                                   end_week=end_week,k_value=k_value,max_lag=max_lag)
     #     performance_list = []
     #     for date_week in dates_list:
@@ -582,7 +657,7 @@ if __name__ == "__main__":
     #     total_performance_list.append(performance_list)
     #
     # legend_info = [str(i) + "-core" for i in range(1,7)]
-    # plot_list_of_lists_vs_dates(dates_list,total_performance_list,"Time","Kcore-performance","Kcore-performance Vs Time",legend_info)
+    # plot_list_of_lists_vs_dates(dates_list,total_performance_list[1:],"Time","Kcore-performance","Kcore-performance Vs Time",legend_info[1:])
 
     # =========================================================================
     # ====================Plotting sentiment =================================
@@ -682,6 +757,6 @@ if __name__ == "__main__":
     # ==============================Plotting Performance and Clustering coefficeint ==============
     # ===========================================================================================================
 
-    plot_relationship_performance_clustering_coefficient(cfg.SENTIMENT_BUSINESS, in_network=True, include_all_nodes=False, start_week= 123, end_week=200)
+    # plot_relationship_performance_clustering_coefficient(cfg.SENTIMENT_BUSINESS, in_network=True, include_all_nodes=False, start_week= 123, end_week=200)
 
     pass

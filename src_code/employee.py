@@ -10,6 +10,7 @@ import queue
 import config as cfg
 
 
+
 class Employee:
     def __init__(self):
         self.immediate_subordinates = []
@@ -120,7 +121,7 @@ def employee_id_to_username_from_file(file_path:str) -> Tuple[dict,dict]:
     employee_username_to_id_dict = {key: value for key, value in zip(emp_name_list,emp_id_list)}
     return employee_id_to_username_dict,employee_username_to_id_dict
 
-def get_emplpoyees_from_file(file_path : str) -> dict:
+def  get_emplpoyees_from_file(file_path : str) -> dict:
     """Returns employees dictionary by parsing the employee file.
 
     Args:
@@ -137,6 +138,7 @@ def get_emplpoyees_from_file(file_path : str) -> dict:
     df = df.fillna("")
     employee_id_dict,_ = employee_id_to_username_from_file(file_path)
     gender_dict = {0:"M",1:"F"}
+
     for i in range(len(df)):
         emp = Employee()
         last_name = df.loc[i,"last.name"].strip()
@@ -429,4 +431,3 @@ employee_dict = create_employee_hierarchy(employee_dict)
 employee_dict = compute_top_user_for_each_user(employee_dict)
 employee_id_to_username_dict,employee_username_to_id_dict = employee_id_to_username_from_file(cfg.EMPLOYEE_MASTER_FILE)
 # =========================================================================
-

@@ -53,8 +53,9 @@ KCORE_BUSINESS_TEMP    = GENERATED_DATA_DIR + "/kcore/temp/business/"
 KCORE_JOINT_TEMP       = GENERATED_DATA_DIR + "/kcore/temp/joint/"
 
 PKL_FILES                   = GENERATED_DATA_DIR + "/pkl_files/"
+BALANCE_PKL_FILES           = GENERATED_DATA_DIR + "/balance/"
 
-
+GCN_DATA_DIR                = "./gcn/gcn/data"
 #############################################################
 ### TEST DATA FILES
 #############################################################

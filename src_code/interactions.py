@@ -517,11 +517,31 @@ def plot_user_performance_with_cluster_performance(user_name:str,src_dir_path: s
     print("========================User on cluseter===========================================================")
     causal_dict = relationships.compute_causality(user_performance_list,clusters_performance_list, max_lag=5)
     misc.print_causality_dict(causal_dict)
-    plot.plot_list_of_lists_vs_dates(dates_list, [user_performance_list, clusters_performance_list],
-                                     "Dates", "Performance", "User Performance vs Cluster Performance", ["User Performance", "Cluster Performance"])
+    # plot.plot_list_of_lists_vs_dates(dates_list, [user_performance_list, clusters_performance_list],
+    #                                  "Dates", "Performance", "User Performance vs Cluster Performance", ["User Performance", "Cluster Performance"])
 
+    # plot.plot_two_graphs_in_single_plot(dates_list, y_cause=user_performance_list,y_effect=clusters_performance_list, xlabel="Time",
+    #                                     ycause_label="User Performance", yeffect_label="Group Performance", title="User Performance vs Group Performance",
+    #                                     legend_cause="User", legend_effect="Group", lag=0)
+    #
+    #
+    # plot.plot_two_graphs_in_single_plot(dates_list, y_cause=user_performance_list, y_effect=clusters_performance_list,
+    #                                     xlabel="Time",
+    #                                     ycause_label="Group Performance", yeffect_label="User Performance",
+    #                                     title="User Performance vs Group Performance",
+    #                                     legend_cause="Group with lag 3", legend_effect="User", lag=3)
 
+    plot.plot_two_graphs_in_single_plot(dates_list, y_effect=clusters_performance_list, y_cause=user_performance_list,
+                                        xlabel="Time",
+                                        ycause_label="User Performance", yeffect_label="Cluster Performance",
+                                        title="User Performance vs Cluster Performance",
+                                        legend_cause="User", legend_effect="Cluster", lag=0)
 
+    plot.plot_two_graphs_in_single_plot(dates_list, y_effect=clusters_performance_list, y_cause=user_performance_list,
+                                        xlabel="Time",
+                                        ycause_label="User Performance", yeffect_label="Cluster Performance",
+                                        title="User Performance vs Cluster Performance",
+                                        legend_cause="User with lag 3", legend_effect="User", lag=3)
 
 
 if __name__ == "__main__":
@@ -610,7 +630,7 @@ if __name__ == "__main__":
     # ===========================Plot user and cluster performance===================
     # =========================================================================================
 
-    plot_user_performance_with_cluster_performance("wolfberg_adam", cfg.SENTIMENT_BUSINESS, 123, 160, True)
+    plot_user_performance_with_cluster_performance("wolfberg_adam", cfg.SENTIMENT_BUSINESS, 135, 156, True)
     pass
 
 
